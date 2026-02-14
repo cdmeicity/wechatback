@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Supabase 连接测试</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: system-ui, sans-serif; max-width: 600px; margin: 40px auto; padding: 0 20px; }
+    h1 { font-size: 1.25rem; margin-bottom: 1rem; }
+    .card { background: #f5f5f5; border-radius: 8px; padding: 16px; margin-bottom: 16px; }
+    .success { background: #e8f5e9; }
+    .error { background: #ffebee; }
+    .btn { background: #1a1a2e; color: #fff; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; }
+    .btn:hover { opacity: 0.9; }
+    pre { background: #fff; padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 12px; }
+    .status { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 8px; }
+    .status.ok { background: #4caf50; }
+    .status.fail { background: #f44336; }
+  </style>
+</head>
+<body>
+  <h1>Supabase 数据连接测试</h1>
+  <p><button class="btn" onclick="runTest()">点击测试</button></p>
+  <div id="result"></div>
+
+  <script>
+    const baseUrl = window.location.origin;
+    async function runTest() {
+      const el = document.getElementById('result');
+      el.innerHTML = '<p>请求中...</p>';
+      try {
+        const res = await fetch(baseUrl + '/api/test');
+        const data = await res.json();
+        const ok = data.connected && !data.error;
+        el.innerHTML = `
+          <div class="card ${ok ? 'success' : 'error'}">
+            <p><span class="status ${ok ? 'ok' : 'fail'}"></span>
+              ${data.connected ? '连接成功' : '连接失败'}</p>
+            ${data.error ? `<p style="color:#c62828">${data.error}</p>` : ''}
+            <pre>${JSON.stringify(data, null, 2)}</pre>
+          </div>
+        `;
+      } catch (err) {
+        el.innerHTML = `<div class="card error"><p>请求失败: ${err.message}</p><p>请确认后端已启动 (npm run dev)</p></div>`;
+      }
+    }
+    runTest();
+  </script>
+</body>
+</html>

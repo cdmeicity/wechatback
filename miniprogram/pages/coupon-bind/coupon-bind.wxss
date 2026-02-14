@@ -1,0 +1,62 @@
+/**
+ * 新绑券 - VI 规范
+ */
+@import '../../styles/vi.wxss';
+
+page {
+  background: var(--background);
+}
+
+.coupon-bind-page.light-theme {
+  min-height: 100vh;
+  background: var(--background);
+  box-sizing: border-box;
+  padding: var(--space-large);
+}
+
+.coupon-bind-form {
+  margin-bottom: var(--space-xxlarge);
+}
+
+.coupon-bind-field {
+  margin-bottom: var(--space-medium);
+}
+
+.coupon-bind-label {
+  display: block;
+  font-size: var(--font-body2);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-xsmall);
+}
+
+.coupon-bind-input {
+  width: 100%;
+  box-sizing: border-box;
+  height: 88rpx;
+  padding: 0 var(--space-medium);
+  background: var(--surface);
+  border: 2rpx solid var(--border);
+  border-radius: var(--radius-medium);
+  font-size: var(--font-body1);
+  color: var(--text-primary);
+}
+
+.coupon-bind-actions {
+  padding-top: var(--space-medium);
+}
+
+.coupon-bind-submit {
+  height: var(--height-button);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--primary);
+  color: #fff;
+  font-size: var(--font-button);
+  font-weight: 600;
+  border-radius: var(--radius-medium);
+}
+
+.coupon-bind-submit-disabled {
+  opacity: 0.6;
+}

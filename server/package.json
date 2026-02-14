@@ -1,0 +1,21 @@
+{
+  "name": "cinema-ticket-server",
+  "version": "1.0.0",
+  "description": "美承影院售票系统 Node 后端",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js"
+  },
+  "keywords": ["cinema", "ticket", "wechat", "supabase"],
+  "license": "MIT",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  }
+}

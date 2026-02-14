@@ -1,0 +1,327 @@
+/* 个人中心 - VI 规范，参照 Flutter MyPage */
+
+.page.light-theme {
+  min-height: 100vh;
+  background: var(--background);
+  padding-bottom: 0;
+  box-sizing: border-box;
+}
+
+.content-scroll {
+  height: 100vh;
+  padding-bottom: calc(120rpx + env(safe-area-inset-bottom));
+}
+
+/* 用户信息区域 */
+.user-info-section {
+  display: flex;
+  align-items: center;
+  padding: var(--space-xlarge) var(--space-large);
+  background: var(--surface);
+}
+
+.avatar-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.avatar {
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: 50%;
+  border: 4rpx solid var(--primary);
+  display: block;
+}
+
+.avatar-placeholder {
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: 50%;
+  background: rgba(254, 74, 73, 0.1);
+  border: 4rpx solid var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatar-icon {
+  font-size: 64rpx;
+}
+
+.avatar-edit {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 48rpx;
+  height: 48rpx;
+  background: var(--primary);
+  border-radius: 50%;
+  border: 4rpx solid var(--surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.edit-icon {
+  font-size: 24rpx;
+  color: #fff;
+  font-weight: 600;
+}
+
+.user-detail {
+  flex: 1;
+  margin-left: var(--space-medium);
+  min-width: 0;
+}
+
+.nickname {
+  display: block;
+  font-size: var(--font-h5);
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: var(--space-xsmall);
+}
+
+.phone {
+  display: block;
+  font-size: var(--font-body2);
+  color: var(--text-secondary);
+}
+
+/* 会员卡入口 */
+.card-section {
+  margin: var(--space-large) var(--space-medium);
+  margin-top: -2rpx; /* 减少 50rpx，原 48rpx → -2rpx */
+}
+
+.card-card {
+  display: flex;
+  align-items: center;
+  padding: var(--space-large);
+  background: linear-gradient(135deg, var(--primary) 0%, rgba(254, 74, 73, 0.85) 100%);
+  border-radius: var(--radius-large);
+  box-shadow: 0 12rpx 30rpx rgba(254, 74, 73, 0.3);
+}
+
+.card-icon-wrap {
+  width: 120rpx;
+  height: 120rpx;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius-medium);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.card-icon {
+  font-size: 64rpx;
+}
+
+.card-content {
+  flex: 1;
+  margin-left: var(--space-medium);
+  min-width: 0;
+}
+
+.card-title {
+  display: block;
+  font-size: var(--font-h5);
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: var(--space-xsmall);
+}
+
+.card-number,
+.card-meta,
+.card-desc {
+  display: block;
+  font-size: var(--font-body2);
+  color: rgba(255, 255, 255, 0.9);
+  margin-top: 4rpx;
+}
+
+.card-desc {
+  margin-top: var(--space-xsmall);
+}
+
+.card-arrow {
+  font-size: 48rpx;
+  color: #fff;
+  margin-left: var(--space-small);
+}
+
+/* 四个小卡片：2x2 网格，自适应屏幕不溢出 */
+.category-section {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-medium);
+  padding: 0 var(--space-medium) var(--space-large);
+  box-sizing: border-box;
+}
+
+.category-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 calc(50% - var(--space-medium) / 2);
+  box-sizing: border-box;
+  min-width: 0;
+  min-height: 160rpx;
+  background: var(--surface);
+  border: 2rpx solid var(--border);
+  border-radius: var(--radius-medium);
+}
+
+.category-icon {
+  width: 56rpx;
+  height: 56rpx;
+  margin-bottom: var(--space-xsmall);
+  flex-shrink: 0;
+}
+
+.category-name {
+  font-size: var(--font-caption);
+  font-weight: 600;
+  color: var(--text-primary);
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+  padding: 0 8rpx;
+}
+
+/* 菜单列表 */
+.menu-section {
+  background: var(--surface);
+  border-radius: var(--radius-medium);
+  overflow: hidden;
+  margin: 0 var(--space-medium);
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  padding: 28rpx var(--space-large); /* 原 48rpx 减 20 → 28rpx */
+  border-bottom: 2rpx solid var(--border);
+}
+
+.menu-item-last {
+  border-bottom: none;
+}
+
+.menu-icon {
+  font-size: 40rpx;
+  margin-right: var(--space-medium);
+}
+
+.menu-title {
+  flex: 1;
+  font-size: var(--font-body1);
+  color: var(--text-primary);
+}
+
+.menu-arrow {
+  font-size: 36rpx;
+  color: var(--text-secondary);
+}
+
+/* 退出登录 */
+.logout-wrap {
+  padding: var(--space-xlarge) var(--space-large);
+}
+
+.logout-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--height-button);
+  background: var(--primary);
+  border-radius: var(--radius-medium);
+  gap: var(--space-small);
+}
+
+.logout-icon {
+  font-size: 40rpx;
+  color: #fff;
+}
+
+.logout-text {
+  font-size: var(--font-button);
+  font-weight: 600;
+  color: #fff;
+}
+
+.bottom-padding {
+  height: var(--space-large);
+}
+
+/* 底部导航栏 */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 120rpx;
+  padding-bottom: env(safe-area-inset-bottom);
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  border-top: 1rpx solid var(--border);
+  box-shadow: 0 -2rpx 12rpx rgba(0, 0, 0, 0.06);
+}
+
+.nav-item {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nav-item-inner {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  padding: 12rpx 20rpx;
+  border-radius: 16rpx;
+}
+
+.nav-item.active .nav-item-inner {
+  background: var(--primary);
+}
+
+.nav-icon {
+  width: 44rpx;
+  height: 44rpx;
+}
+
+.nav-icon-user {
+  width: 52rpx;
+  height: 52rpx;
+}
+
+.nav-label {
+  font-size: 24rpx;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.nav-item.active .nav-label {
+  color: #fff;
+}
+
+.nav-label.imax-text {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.nav-item.active .nav-label.imax-text {
+  color: #fff;
+}

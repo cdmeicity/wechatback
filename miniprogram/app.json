@@ -1,0 +1,42 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/bind-phone/bind-phone",
+    "pages/ticketinfo/ticketinfo",
+    "pages/movieinfo/movieinfo",
+    "pages/play/play",
+    "pages/movie/movie",
+    "pages/select-seat/select-seat",
+    "pages/seat-select/seat-select",
+    "pages/confirm-pay/confirm-pay",
+    "pages/order/order",
+    "pages/user/user",
+    "pages/card-manage/card-manage",
+    "pages/movie-search/movie-search",
+    "pages/notification/notification",
+    "pages/food/food",
+    "pages/imax/imax",
+    "pages/order-list/order-list",
+    "pages/feedback/feedback",
+    "pages/feedback-add/feedback-add",
+    "pages/feedback-detail/feedback-detail",
+    "pages/agreement-service/agreement-service",
+    "pages/agreement-privacy/agreement-privacy",
+    "pages/coupon-list/coupon-list",
+    "pages/coupon-bind/coupon-bind"
+  ],
+  "window": {
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#FE4A49",
+    "navigationBarTitleText": "美承影院",
+    "navigationBarTextStyle": "white"
+  },
+  "lazyCodeLoading": "requiredComponents",
+  "permission": {
+    "scope.userLocation": {
+      "desc": "用于获取附近影院列表"
+    }
+  },
+  "requiredPrivateInfos": ["getLocation"],
+  "sitemapLocation": "sitemap.json"
+}

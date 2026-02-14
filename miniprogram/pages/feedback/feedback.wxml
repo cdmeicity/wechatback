@@ -1,0 +1,36 @@
+<view class="feedback-page light-theme">
+  <view class="feedback-header">
+    <view class="feedback-add-btn" bindtap="onAddTap">
+      <text class="feedback-add-icon">+</text>
+      <text class="feedback-add-text">新增反馈</text>
+    </view>
+  </view>
+
+  <scroll-view scroll-y class="feedback-scroll" enhanced show-scrollbar="{{false}}">
+    <view wx:if="{{loading}}" class="feedback-loading">
+      <text>加载中...</text>
+    </view>
+    <view wx:elif="{{list.length === 0}}" class="feedback-empty">
+      <text class="feedback-empty-icon">💬</text>
+      <text class="feedback-empty-text">暂无反馈记录</text>
+      <text class="feedback-empty-hint">点击上方「新增反馈」提交您的问题</text>
+    </view>
+    <view wx:else class="feedback-list">
+      <view
+        wx:for="{{list}}"
+        wx:key="id"
+        class="feedback-card"
+        data-id="{{item.id}}"
+        bindtap="onCardTap"
+      >
+        <view class="feedback-card-title">{{item.title}}</view>
+        <view class="feedback-card-content">{{item.content}}</view>
+        <view class="feedback-card-meta">
+          <text class="feedback-card-time">{{item.createdAtStr}}</text>
+          <text wx:if="{{item.hasReply}}" class="feedback-card-badge">已回复</text>
+        </view>
+      </view>
+    </view>
+    <view class="feedback-bottom-pad"></view>
+  </scroll-view>
+</view>

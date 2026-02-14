@@ -1,0 +1,97 @@
+<view class="order-page light-theme">
+  <!-- 登录弹窗：userinfo 为空时弹出 -->
+  <phone-login-modal
+    show="{{showLoginModal}}"
+    bind:close="onLoginModalClose"
+    bind:success="onLoginSuccess"
+  />
+  <!-- Tab 栏 -->
+  <view class="tab-bar">
+    <view
+      class="tab-item {{currentTab === 0 ? 'active' : ''}}"
+      data-index="0"
+      bindtap="onTabTap"
+    >
+      <text>待观看</text>
+    </view>
+    <view
+      class="tab-item {{currentTab === 1 ? 'active' : ''}}"
+      data-index="1"
+      bindtap="onTabTap"
+    >
+      <text>未付款</text>
+    </view>
+    <view
+      class="tab-item {{currentTab === 2 ? 'active' : ''}}"
+      data-index="2"
+      bindtap="onTabTap"
+    >
+      <text>全部订单</text>
+    </view>
+  </view>
+
+  <!-- 订单列表 -->
+  <scroll-view
+    class="order-list"
+    scroll-y
+    enhanced
+    show-scrollbar="{{false}}"
+    bindscrolltolower=""
+  >
+    <view wx:if="{{loading}}" class="loading-wrap">
+      <text>加载中...</text>
+    </view>
+    <block wx:elif="{{displayOrders.length === 0}}">
+      <view class="empty">
+        <text class="empty-icon">🎫</text>
+        <text class="empty-text">暂无订单</text>
+      </view>
+    </block>
+    <block wx:else>
+      <view
+        wx:for="{{displayOrders}}"
+        wx:key="id"
+        class="order-card"
+      >
+        <view class="card-row">
+          <view class="poster-wrap">
+            <image
+              wx:if="{{item.moviePoster}}"
+              class="poster"
+              src="{{item.moviePoster}}"
+              mode="aspectFill"
+            />
+            <view wx:else class="poster-placeholder">🎬</view>
+          </view>
+          <view class="card-info">
+            <view class="info-row">
+              <text class="movie-name">{{item.movieName}}</text>
+              <view class="status-badge {{currentTab === 2 ? 'status-watched-grey' : 'status-' + item.status}}">
+                <text>{{currentTab === 2 ? '已观看' : (item.status === 'paid' ? '待观看' : (item.status === 'pending' ? '未付款' : '已观看'))}}</text>
+              </view>
+            </view>
+            <text wx:if="{{item.movieCategory}}" class="meta">{{item.movieCategory}}</text>
+            <text wx:if="{{item.language}}" class="meta">{{item.language}}</text>
+            <text class="cinema">{{item.cinemaName}}</text>
+            <text class="time">{{item.showDate}} {{item.showTime}}</text>
+            <text class="seats">{{item.seatCount}}张票 · {{item.seats.join('、') || '-'}}</text>
+          </view>
+        </view>
+        <view class="card-actions">
+          <block wx:if="{{currentTab === 0 && item.status === 'paid'}}">
+            <view class="btn-outline" bindtap="onViewTicket" data-out-trade-no="{{item.outTradeNo}}">查看影票</view>
+          </block>
+          <block wx:elif="{{currentTab === 1 && item.status === 'pending'}}">
+            <view class="btn-outline">取消订单</view>
+            <view class="btn-primary-sm">马上支付</view>
+          </block>
+          <block wx:elif="{{currentTab === 2}}">
+            <view wx:if="{{item.status === 'pending'}}" class="btn-outline">取消订单</view>
+            <view wx:if="{{item.status === 'pending'}}" class="btn-primary-sm">马上支付</view>
+            <view wx:if="{{item.status !== 'pending'}}" class="btn-success" bindtap="onViewTicket" data-out-trade-no="{{item.outTradeNo}}">查看影票</view>
+          </block>
+        </view>
+      </view>
+    </block>
+  </scroll-view>
+</view>

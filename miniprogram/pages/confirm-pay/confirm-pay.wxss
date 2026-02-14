@@ -1,0 +1,470 @@
+/**
+ * 确认支付页 - VI 规范
+ */
+@import '/styles/vi.wxss';
+
+.confirm-pay-page {
+  min-height: 100vh;
+  background: var(--background);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.content {
+  height: calc(100vh - 160rpx);
+  padding: var(--space-medium);
+  box-sizing: border-box;
+}
+
+/* 电影信息卡片 */
+.movie-card {
+  display: flex;
+  background: var(--surface);
+  border-radius: var(--radius-medium);
+  padding: var(--space-medium);
+  margin-bottom: var(--space-medium);
+  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.06);
+}
+
+.poster-wrap {
+  flex-shrink: 0;
+  width: 160rpx;
+  height: 240rpx;
+  border-radius: var(--radius-small);
+  overflow: hidden;
+  background: var(--border);
+}
+
+.poster {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.poster-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 64rpx;
+}
+
+.movie-info {
+  flex: 1;
+  margin-left: var(--space-medium);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+}
+
+.movie-name {
+  font-size: var(--font-h5);
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.movie-type {
+  font-size: var(--font-caption);
+  color: var(--text-secondary);
+  margin-top: var(--space-xsmall);
+}
+
+.showtime-info,
+.seat-info {
+  font-size: var(--font-caption);
+  color: var(--text-secondary);
+  margin-top: var(--space-xsmall);
+}
+
+/* 区块 */
+.section {
+  background: var(--surface);
+  border-radius: var(--radius-medium);
+  padding: var(--space-medium);
+  margin-bottom: var(--space-medium);
+}
+
+.section-title {
+  font-size: var(--font-h5);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.section-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-small);
+}
+
+.coupon-link {
+  font-size: var(--font-body2);
+  color: var(--primary);
+  font-weight: 500;
+}
+
+/* 支付方式 */
+.payment-methods {
+  margin-top: var(--space-small);
+}
+
+.payment-item {
+  display: flex;
+  align-items: center;
+  padding: var(--space-medium);
+  border: 2rpx solid var(--border);
+  border-radius: var(--radius-medium);
+  margin-bottom: var(--space-small);
+}
+
+.payment-item.selected {
+  border-color: var(--primary);
+  background: rgba(254, 74, 73, 0.04);
+}
+
+.payment-icon {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: var(--radius-small);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40rpx;
+}
+
+.payment-icon.wechat {
+  background: #E8F5E9;
+}
+
+.payment-icon.coupon {
+  background: #FFF3E0;
+}
+
+.payment-icon.member {
+  background: rgba(254, 74, 73, 0.12);
+}
+
+.payment-info {
+  flex: 1;
+  margin-left: var(--space-medium);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xsmall);
+}
+
+.payment-extra {
+  font-size: var(--font-caption);
+  color: var(--text-secondary);
+}
+
+.payment-name {
+  flex: 1;
+  margin-left: var(--space-medium);
+  font-size: var(--font-body1);
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.radio {
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: 50%;
+  border: 2rpx solid var(--border);
+}
+
+.radio.checked {
+  border-color: var(--primary);
+  background: var(--primary);
+}
+
+/* 优惠券 */
+.coupon-section .section-row {
+  margin-bottom: var(--space-small);
+}
+
+.coupon-add-cell {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-medium);
+  border: 2rpx solid var(--border);
+  border-radius: var(--radius-medium);
+  margin-top: var(--space-small);
+}
+
+.coupon-add-placeholder {
+  font-size: var(--font-body1);
+  color: var(--text-placeholder);
+}
+
+.coupon-list-title {
+  font-size: var(--font-caption);
+  color: var(--text-secondary);
+  margin-top: var(--space-medium);
+  margin-bottom: var(--space-xsmall);
+}
+
+.bound-coupon-list {
+  margin-top: var(--space-small);
+}
+
+.bound-coupon-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-small) var(--space-medium);
+  background: var(--background);
+  border-radius: var(--radius-small);
+  margin-bottom: var(--space-xsmall);
+}
+
+.bound-coupon-code {
+  font-size: var(--font-body2);
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.bound-coupon-valid {
+  font-size: var(--font-caption);
+  color: var(--text-secondary);
+}
+
+.arrow {
+  font-size: 36rpx;
+  color: var(--text-placeholder);
+}
+
+/* 订单汇总 */
+.summary .summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-small) 0;
+}
+
+.summary-row.total {
+  padding-top: var(--space-medium);
+  margin-top: var(--space-small);
+  border-top: 2rpx solid var(--border);
+}
+
+.summary-label {
+  font-size: var(--font-body1);
+  color: var(--text-secondary);
+}
+
+.summary-value {
+  font-size: var(--font-body1);
+  color: var(--text-primary);
+}
+
+.summary-value.primary {
+  font-size: var(--font-h4);
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.summary-row.discount .summary-value {
+  color: var(--primary);
+}
+
+.bottom-spacer {
+  height: 120rpx;
+}
+
+/* 底部栏 */
+.bottom-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  padding: var(--space-medium);
+  padding-bottom: calc(var(--space-medium) + env(safe-area-inset-bottom));
+  background: var(--surface);
+  box-shadow: 0 -4rpx 20rpx rgba(0,0,0,0.08);
+}
+
+.bottom-bar .total-wrap {
+  flex: 1;
+}
+
+.bottom-bar .total-label {
+  display: block;
+  font-size: var(--font-caption);
+  color: var(--text-secondary);
+}
+
+.bottom-bar .total-price {
+  font-size: var(--font-h4);
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.btn-pay {
+  height: var(--height-button);
+  line-height: var(--height-button);
+  padding: 0 var(--space-xlarge);
+  font-size: var(--font-button);
+  font-weight: 600;
+  color: #fff;
+  background: var(--primary);
+  border-radius: var(--radius-medium);
+  border: none;
+}
+
+.btn-pay::after {
+  border: none;
+}
+
+/* 会员卡密码弹窗 */
+.password-modal-mask {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.password-modal {
+  width: 600rpx;
+  background: var(--surface);
+  border-radius: var(--radius-medium);
+  padding: var(--space-large);
+}
+
+.password-modal-title {
+  font-size: var(--font-h5);
+  font-weight: 600;
+  color: var(--text-primary);
+  text-align: center;
+  margin-bottom: var(--space-small);
+}
+
+.password-modal-desc {
+  font-size: var(--font-body2);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-medium);
+}
+
+.password-input {
+  height: var(--height-input);
+  background: var(--background);
+  border: 2rpx solid var(--border);
+  border-radius: var(--radius-medium);
+  padding: 0 var(--space-medium);
+  font-size: var(--font-body1);
+  margin-bottom: var(--space-large);
+}
+
+.password-modal-actions {
+  display: flex;
+  gap: var(--space-medium);
+}
+
+.password-btn {
+  flex: 1;
+  height: var(--height-button);
+  line-height: var(--height-button);
+  text-align: center;
+  font-size: var(--font-button);
+  font-weight: 600;
+  border-radius: var(--radius-medium);
+}
+
+.password-btn.cancel {
+  background: var(--background);
+  color: var(--text-secondary);
+}
+
+.password-btn.confirm {
+  background: var(--primary);
+  color: #fff;
+}
+
+/* 添加优惠券弹窗 */
+.coupon-modal-mask {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.coupon-modal {
+  width: 600rpx;
+  background: var(--surface);
+  border-radius: var(--radius-medium);
+  padding: var(--space-large);
+}
+
+.coupon-modal-title {
+  font-size: var(--font-h5);
+  font-weight: 600;
+  color: var(--text-primary);
+  text-align: center;
+  margin-bottom: var(--space-small);
+}
+
+.coupon-modal-desc {
+  font-size: var(--font-body2);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-medium);
+}
+
+.coupon-modal-input {
+  height: var(--height-input);
+  background: var(--background);
+  border: 2rpx solid var(--border);
+  border-radius: var(--radius-medium);
+  padding: 0 var(--space-medium);
+  font-size: var(--font-body1);
+  margin-bottom: var(--space-large);
+}
+
+.coupon-modal-actions {
+  display: flex;
+  gap: var(--space-medium);
+}
+
+.coupon-modal-btn {
+  flex: 1;
+  height: var(--height-button);
+  line-height: var(--height-button);
+  text-align: center;
+  font-size: var(--font-button);
+  font-weight: 600;
+  border-radius: var(--radius-medium);
+}
+
+.coupon-modal-btn.cancel {
+  background: var(--background);
+  color: var(--text-secondary);
+}
+
+.coupon-modal-btn.confirm {
+  background: var(--primary);
+  color: #fff;
+}
+
+.coupon-modal-btn.confirm.disabled {
+  opacity: 0.6;
+}

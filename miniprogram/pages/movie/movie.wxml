@@ -1,0 +1,28 @@
+<view class="container" wx:if="{{movie}}">
+  <view class="movie-header">
+    <image class="poster" src="{{movie.logo}}" mode="aspectFill" />
+    <view class="info">
+      <text class="title">{{movie.name}}</text>
+      <text class="meta">{{movie.type || ''}}{{movie.type && movie.duration ? ' | ' : ''}}{{movie.duration ? movie.duration + '分钟' : ''}}</text>
+      <text class="desc">{{movie.description || ''}}</text>
+    </view>
+  </view>
+
+  <view class="section">
+    <text class="section-title">选择场次</text>
+    <view wx:if="{{loading}}" class="loading">加载中...</view>
+    <view wx:else class="schedule-list">
+      <view
+        wx:for="{{schedules}}"
+        wx:key="id"
+        class="schedule-item"
+        data-schedule="{{item}}"
+        bindtap="selectSchedule"
+      >
+        <view class="time">{{item.show_time_formatted}}</view>
+        <view class="hall">{{item.hall ? item.hall.name : ''}}</view>
+        <view class="price">¥{{item.price}}</view>
+      </view>
+    </view>
+  </view>
+</view>

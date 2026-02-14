@@ -1,0 +1,40 @@
+/**
+ * Cinema 售票平台 - 颜色系统 (VI 规范)
+ * 品牌色：红色(Primary) + 青绿色(Secondary) + 金黄色(Accent)
+ */
+page {
+  /* 第一品牌色 - 红色 */
+  --primary: #FE4A49;
+  --primary-light: #FF6B6A;
+  --primary-dark: #E03A3A;
+  /* 第二品牌色 - 青绿色 */
+  --secondary: #4AD7D1;
+  --secondary-light: #6DE3DD;
+  --secondary-dark: #3BB5B0;
+  /* 辅助色 - 金黄色 */
+  --accent: #EDBA37;
+  --accent-light: #F4CA5F;
+  --accent-dark: #D4A62C;
+  /* 中性色 */
+  --background: #F8F9FA;
+  --surface: #FFFFFF;
+  --text-primary: #1A1A1A;
+  --text-secondary: #757575;
+  --text-placeholder: #9E9E9E;
+  --border: #E0E0E0;
+  /* 深色主题 */
+  --surface-dark: #1E1E2E;
+  --background-dark: #121212;
+  --text-primary-dark: #FFFFFF;
+  /* 语义色 */
+  --success: #00C896;
+  --warning: #FFB84D;
+  --error: #FF5252;
+  --info: #2196F3;
+  /* 座位状态 */
+  --seat-available: #E0E0E0;
+  --seat-selected: #FE4A49;
+  --seat-sold: #757575;
+  --seat-vip: #FFD700;
+  --seat-couple: #FF6B9D;
+}

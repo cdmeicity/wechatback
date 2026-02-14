@@ -1,0 +1,115 @@
+/**
+ * 反馈详情 - VI 规范
+ */
+@import '../../styles/vi.wxss';
+
+page {
+  background: var(--background);
+}
+
+.feedback-detail-page.light-theme {
+  min-height: 100vh;
+  background: var(--background);
+  box-sizing: border-box;
+}
+
+.feedback-detail-loading,
+.feedback-detail-empty {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-xxlarge);
+  font-size: var(--font-body1);
+  color: var(--text-secondary);
+}
+
+.feedback-detail-scroll {
+  height: 100vh;
+  padding: var(--space-large);
+  box-sizing: border-box;
+}
+
+.feedback-detail-card {
+  background: var(--surface);
+  border-radius: var(--radius-medium);
+  border: 2rpx solid var(--border);
+  padding: var(--space-large);
+  margin-bottom: var(--space-medium);
+}
+
+.feedback-detail-title {
+  font-size: var(--font-h5);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: var(--space-xsmall);
+}
+
+.feedback-detail-time {
+  font-size: var(--font-caption);
+  color: var(--text-placeholder);
+  margin-bottom: var(--space-medium);
+}
+
+.feedback-detail-content {
+  font-size: var(--font-body1);
+  color: var(--text-primary);
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.feedback-detail-images {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-small);
+  margin-top: var(--space-medium);
+}
+
+.feedback-detail-img {
+  width: 200rpx;
+  height: 200rpx;
+  border-radius: var(--radius-small);
+  background: var(--background);
+}
+
+.feedback-detail-reply-card {
+  background: linear-gradient(135deg, rgba(254, 74, 73, 0.08) 0%, rgba(254, 74, 73, 0.04) 100%);
+  border-radius: var(--radius-medium);
+  border: 2rpx solid rgba(254, 74, 73, 0.3);
+  padding: var(--space-large);
+  margin-bottom: var(--space-medium);
+}
+
+.feedback-detail-reply-title {
+  font-size: var(--font-body1);
+  font-weight: 600;
+  color: var(--primary);
+  margin-bottom: var(--space-xsmall);
+}
+
+.feedback-detail-reply-time {
+  font-size: var(--font-caption);
+  color: var(--text-placeholder);
+  margin-bottom: var(--space-small);
+}
+
+.feedback-detail-reply-content {
+  font-size: var(--font-body1);
+  color: var(--text-primary);
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.feedback-detail-no-reply {
+  padding: var(--space-large);
+  text-align: center;
+}
+
+.feedback-detail-no-reply-text {
+  font-size: var(--font-body2);
+  color: var(--text-placeholder);
+}
+
+.feedback-detail-bottom-pad {
+  height: var(--space-large);
+}

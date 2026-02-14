@@ -1,0 +1,23 @@
+<view class="container">
+  <view wx:if="{{loading}}" class="loading">加载中...</view>
+  <view wx:else>
+    <view class="screen">荧幕</view>
+    <view class="seat-grid">
+      <view
+        wx:for="{{seats}}"
+        wx:key="id"
+        class="seat {{item.status === 'sold' ? 'sold' : ''}} {{item.isSelected ? 'selected' : ''}}"
+        data-seat="{{item}}"
+        bindtap="toggleSeat"
+      >
+        {{item.row_num}}{{item.col_num}}
+      </view>
+    </view>
+    <view class="legend">
+      <view><view class="dot available"></view>可选</view>
+      <view><view class="dot selected"></view>已选</view>
+      <view><view class="dot sold"></view>已售</view>
+    </view>
+    <button class="btn" bindtap="confirm">确认选座 ({{selected.length}})</button>
+  </view>
+</view>

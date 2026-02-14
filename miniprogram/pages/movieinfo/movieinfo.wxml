@@ -1,0 +1,88 @@
+<view class="movieinfo-page light-theme">
+  <view wx:if="{{movie}}" class="content">
+    <view class="header-row">
+      <view class="poster-wrap">
+        <image
+          wx:if="{{movie.logo}}"
+          class="poster"
+          src="{{movie.logo}}"
+          mode="aspectFill"
+        />
+        <view wx:else class="poster-placeholder">
+          <text class="placeholder-icon">🎬</text>
+        </view>
+      </view>
+      <view class="info-cards">
+        <view class="info-card">
+          <text class="info-icon">🎬</text>
+          <view class="info-text">
+            <text class="info-label">类型</text>
+            <text class="info-value">{{movie.type || '未知'}}</text>
+          </view>
+        </view>
+        <view class="info-card">
+          <text class="info-icon">⏱</text>
+          <view class="info-text">
+            <text class="info-label">时长</text>
+            <text class="info-value">{{movie.durationText}}</text>
+          </view>
+        </view>
+        <view class="info-card">
+          <text class="info-icon">⭐</text>
+          <view class="info-text">
+            <text class="info-label">评分</text>
+            <text class="info-value">{{movie.ratingText}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view class="title-section">
+      <text class="movie-title">{{movie.name}}</text>
+      <text wx:if="{{movie.origin}}" class="movie-origin">{{movie.origin}}</text>
+    </view>
+
+    <view wx:if="{{trailers.length > 0}}" class="trailer-section">
+      <text class="section-title">预告片</text>
+      <swiper
+        class="trailer-swiper"
+        indicator-dots="{{trailers.length > 1}}"
+        indicator-color="rgba(255,255,255,0.5)"
+        indicator-active-color="var(--primary)"
+        autoplay="{{false}}"
+        circular="{{trailers.length > 1}}"
+        bindchange="onTrailerSwiperChange"
+      >
+        <block wx:for="{{trailers}}" wx:key="*this">
+          <swiper-item>
+            <view class="trailer-item">
+              <image class="trailer-img" src="{{item}}" mode="aspectFill" />
+            </view>
+          </swiper-item>
+        </block>
+      </swiper>
+    </view>
+
+    <view wx:if="{{basicItems.length > 0}}" class="info-section">
+      <text class="section-title">基本信息</text>
+      <view wx:for="{{basicItems}}" wx:key="label" class="info-item">
+        <text class="info-item-label">{{item.label}}</text>
+        <text class="info-item-value">{{item.value}}</text>
+      </view>
+    </view>
+
+    <view wx:if="{{otherItems.length > 0}}" class="info-section">
+      <text class="section-title">其他信息</text>
+      <view wx:for="{{otherItems}}" wx:key="label" class="info-item">
+        <text class="info-item-label">{{item.label}}</text>
+        <text class="info-item-value">{{item.value}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view wx:else class="empty">未获取到影片信息</view>
+
+  <view class="bottom-bar" wx:if="{{movie}}">
+    <view class="btn-primary" bindtap="selectShowtime">选择场次</view>
+  </view>
+</view>

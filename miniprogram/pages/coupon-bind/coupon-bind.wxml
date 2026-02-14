@@ -1,0 +1,22 @@
+<view class="coupon-bind-page light-theme">
+  <view class="coupon-bind-form">
+    <view class="coupon-bind-field">
+      <text class="coupon-bind-label">券码</text>
+      <input
+        class="coupon-bind-input"
+        placeholder="请输入券码"
+        value="{{couponCode}}"
+        bindinput="onCodeInput"
+      />
+    </view>
+  </view>
+
+  <view class="coupon-bind-actions">
+    <view
+      class="coupon-bind-submit {{submitting ? 'coupon-bind-submit-disabled' : ''}}"
+      bindtap="onSubmit"
+    >
+      <text>确认绑定</text>
+    </view>
+  </view>
+</view>

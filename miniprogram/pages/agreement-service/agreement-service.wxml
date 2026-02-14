@@ -1,0 +1,48 @@
+<view class="agreement-page">
+  <scroll-view scroll-y class="agreement-scroll">
+    <view class="agreement-content">
+      <view class="agreement-header">
+        <text class="agreement-title">{{title}}</text>
+        <text class="agreement-meta">生效日期：{{effectiveDate}}</text>
+        <text class="agreement-meta">甲方（服务提供方）：{{company}}</text>
+        <text class="agreement-meta">乙方（用户）：使用本小程序的注册用户</text>
+      </view>
+      <text class="agreement-p">欢迎您使用美承影院微信小程序（以下简称“本小程序”）提供的观影购票及相关服务。在使用前，请您务必审慎阅读、充分理解本协议各条款。您使用本小程序即视为您已阅读并同意接受本协议约束。</text>
+
+      <text class="agreement-h">一、服务内容</text>
+      <text class="agreement-p">1.1 本小程序由承德扬天文化传媒有限公司运营，为用户提供影院排期查询、在线选座购票、会员服务、订单查询、取票及与观影相关的信息服务。</text>
+      <text class="agreement-p">1.2 本协议所称“服务”包括但不限于：影片与场次信息展示、座位选择与锁定、在线支付、电子取票码、会员卡绑定与使用、优惠与活动信息、问题反馈等。</text>
+
+      <text class="agreement-h">二、用户注册与账号</text>
+      <text class="agreement-p">2.1 您可通过手机号及验证码完成注册/登录。您应保证所填写的手机号真实、有效，并自行保管账号与验证码安全。</text>
+      <text class="agreement-p">2.2 您理解并同意：本小程序部分功能依赖微信授权（如定位、支付等），若您拒绝授权，可能无法使用相应功能。</text>
+
+      <text class="agreement-h">三、用户行为规范</text>
+      <text class="agreement-p">3.1 您在使用本小程序时，应遵守中华人民共和国相关法律法规，不得利用本小程序从事违法违规活动。</text>
+      <text class="agreement-p">3.2 您不得恶意刷单、虚假下单、滥用优惠或会员权益，不得干扰、破坏本小程序的正常运行或他人正常使用。</text>
+      <text class="agreement-p">3.3 因您违反法律法规或本协议导致我方或第三方遭受损失的，您应承担相应法律责任与赔偿责任。</text>
+
+      <text class="agreement-h">四、购票与退改签</text>
+      <text class="agreement-p">4.1 购票成功后，请按影院规定时间取票观影。具体退票、改签规则以影院及本小程序内公示为准。</text>
+      <text class="agreement-p">4.2 因不可抗力、影院排片调整等原因导致场次取消或变更的，我们将按公示规则协助您退票或改签。</text>
+
+      <text class="agreement-h">五、知识产权</text>
+      <text class="agreement-p">本小程序内的界面设计、文案、标识、数据等（法律法规另有规定或经权利人授权的除外）知识产权归承德扬天文化传媒有限公司或相关权利人所有。未经书面许可，您不得擅自使用、复制或传播。</text>
+
+      <text class="agreement-h">六、免责与责任限制</text>
+      <text class="agreement-p">6.1 在法律允许的范围内，因网络状况、系统维护、不可抗力等导致的服务中断或数据异常，我方将尽力恢复但不承担由此给您造成的损失（法律法规另有规定的除外）。</text>
+      <text class="agreement-p">6.2 您与第三方（如支付机构、影院）之间的纠纷，由您与该第三方自行协商解决；我方可在合理范围内协助协调。</text>
+
+      <text class="agreement-h">七、协议变更与通知</text>
+      <text class="agreement-p">我方有权根据需要修订本协议，修订后的协议将在本小程序内公布，生效日期以公布为准。若您继续使用本小程序，即视为接受修订后的协议。</text>
+
+      <text class="agreement-h">八、其他</text>
+      <text class="agreement-p">8.1 本协议适用中华人民共和国法律（不含冲突法）。</text>
+      <text class="agreement-p">8.2 本协议自2026年2月9日起生效。如有疑问，可通过本小程序“我的-问题反馈”与我们联系。</text>
+      <view class="agreement-footer">
+        <text class="agreement-meta">承德扬天文化传媒有限公司</text>
+        <text class="agreement-meta">2026年2月9日</text>
+      </view>
+    </view>
+  </scroll-view>
+</view>

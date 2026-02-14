@@ -1,0 +1,93 @@
+<view class="page light-theme">
+  <scroll-view class="content-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+    <!-- 用户信息区域 -->
+    <view class="user-info-section">
+      <view class="avatar-wrap">
+        <image
+          wx:if="{{avatarUrl}}"
+          class="avatar"
+          src="{{avatarUrl}}"
+          mode="aspectFill"
+        />
+        <view wx:else class="avatar-placeholder">
+          <text class="avatar-icon">👤</text>
+        </view>
+        <!-- 点击无反应，仅展示原有 UI（已注释 onEditProfile 内「正在开发中」提示） -->
+        <view class="avatar-edit" bindtap="onEditProfile">
+          <text class="edit-icon">✎</text>
+        </view>
+      </view>
+      <view class="user-detail">
+        <text class="nickname">{{nickname || '未设置昵称'}}</text>
+        <text class="phone">{{phone || '未绑定手机号'}}</text>
+      </view>
+    </view>
+
+    <!-- 会员卡入口 -->
+    <view class="card-section" bindtap="onMembershipCardTap">
+      <view wx:if="{{cardInfo && cardInfo.cardNumber}}" class="card-card has-card">
+        <view class="card-icon-wrap">
+          <text class="card-icon">🖥</text>
+        </view>
+        <view class="card-content">
+          <text class="card-title">{{cardInfo.cardName || '会员卡'}}</text>
+          <text class="card-number">卡号：{{cardInfo.cardNumber}}</text>
+          <text wx:if="{{cardInfo.balance != null}}" class="card-meta">余额：¥{{cardInfo.balance}}</text>
+          <text wx:if="{{cardInfo.points != null}}" class="card-meta">积分：{{cardInfo.points}}</text>
+        </view>
+        <text class="card-arrow">›</text>
+      </view>
+      <view wx:else class="card-card no-card">
+        <view class="card-icon-wrap">
+          <text class="card-icon">🖥</text>
+        </view>
+        <view class="card-content">
+          <text class="card-title">办理会员卡</text>
+          <text class="card-desc">享受专属优惠，积分兑换好礼，尊享会员特权！</text>
+        </view>
+        <text class="card-arrow">›</text>
+      </view>
+    </view>
+
+    <!-- 四个小卡片：2x2 网格，自适应不溢出 -->
+    <view class="category-section">
+      <view
+        wx:for="{{categoryCards}}"
+        wx:key="name"
+        class="category-card"
+        data-name="{{item.name}}"
+        bindtap="onCategoryTap"
+      >
+        <image class="category-icon" src="{{item.icon}}" mode="aspectFit" />
+        <text class="category-name">{{item.name}}</text>
+      </view>
+    </view>
+
+    <!-- 退出登录：仅 supabaseUser 存在时显示 -->
+    <view class="logout-wrap" wx:if="{{isLoggedIn}}">
+      <view class="logout-btn" bindtap="onLogout">
+        <text class="logout-icon">↪</text>
+        <text class="logout-text">退出登录</text>
+      </view>
+    </view>
+
+    <view class="bottom-padding"></view>
+  </scroll-view>
+
+  <!-- 底部导航栏 -->
+  <view class="bottom-nav">
+    <view
+      wx:for="{{navItems}}"
+      wx:key="key"
+      class="nav-item {{item.active ? 'active' : ''}}"
+      data-index="{{index}}"
+      bindtap="onNavTap"
+    >
+      <view class="nav-item-inner">
+        <image wx:if="{{item.icon}}" class="nav-icon {{item.key === 'user' ? 'nav-icon-user' : ''}}" src="{{item.active ? item.iconActive : item.icon}}" mode="aspectFit" />
+        <text wx:if="{{item.key === 'imax'}}" class="nav-label imax-text">{{item.name}}</text>
+        <text wx:elif="{{item.active}}" class="nav-label">{{item.name}}</text>
+      </view>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,123 @@
+<view class="page light-theme">
+  <!-- 头部：影院选择（左），下沿与胶囊下沿对齐，上沿随内容增高 -->
+  <view class="header" style="padding-top: {{menuTop}}px; padding-right: {{headerRightPadding}}px;">
+    <view class="header-row" style="height: {{menuButtonHeight}}px;">
+      <view class="cinema-selector" bindtap="onCinemaSelect">
+      <view class="cinema-info" wx:if="{{!loadingCinema && currentCinema}}">
+        <text class="cinema-name">{{currentCinema.name}}</text>
+        <text class="cinema-distance">距离 {{currentCinema.displayDistance}}</text>
+      </view>
+      <view class="cinema-info" wx:elif="{{loadingCinema}}">
+        <text class="cinema-name">加载中...</text>
+      </view>
+      <view class="cinema-info" wx:else>
+        <text class="cinema-name">请授权位置</text>
+        <text class="cinema-distance">获取附近影院</text>
+      </view>
+      <text class="dropdown-icon">▼</text>
+    </view>
+    </view>
+  </view>
+
+  <!-- 搜索栏 + 通知按钮 -->
+  <view class="search-section">
+    <view class="search-input" bindtap="goSearch">
+      <image class="search-icon-img" src="/images/icon-search.svg" mode="aspectFit" />
+      <text class="search-placeholder">搜索影片</text>
+    </view>
+    <view class="notify-btn" bindtap="goNotification">
+      <image class="notify-icon-img" src="/images/icon-notification.svg" mode="aspectFit" />
+      <view wx:if="{{totalUnreadCount > 0}}" class="badge">{{totalUnreadCount > 99 ? '99+' : totalUnreadCount}}</view>
+    </view>
+  </view>
+
+  <!-- 快捷入口：4 卡片自适应屏幕宽度 -->
+  <view class="category-section">
+    <view class="category-grid">
+      <view
+        wx:for="{{categoryCards}}"
+        wx:key="name"
+        class="category-card"
+        data-name="{{item.name}}"
+        bindtap="onCategoryTap"
+      >
+        <view class="category-card-inner">
+          <view class="category-icon-wrap">
+            <image wx:if="{{item.icon === 'activity'}}" class="category-icon-img" src="/images/icon-activity-tag.svg" mode="aspectFit" />
+            <image wx:elif="{{item.icon === 'imax'}}" class="category-icon-img" src="/images/icon-users.svg" mode="aspectFit" />
+            <image wx:elif="{{item.icon === 'vip'}}" class="category-icon-img" src="/images/icon-vip-ticket.svg" mode="aspectFit" />
+            <image wx:else class="category-icon-img" src="/images/icon-gift-card.svg" mode="aspectFit" />
+          </view>
+          <text class="category-name">{{item.name}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 热映影片 -->
+  <view class="movie-section">
+    <view class="section-header">
+      <text class="section-title">热映影片</text>
+      <text class="section-count">共{{hotMovies.length}}部</text>
+    </view>
+    <view wx:if="{{loadingHotMovies}}" class="loading-wrap">加载中...</view>
+    <scroll-view wx:else scroll-x class="movie-scroll" show-scrollbar="{{false}}">
+      <view
+        wx:for="{{hotMovies}}"
+        wx:key="id"
+        class="movie-card"
+        data-id="{{item.id}}"
+        bindtap="goMovie"
+      >
+        <view class="poster-wrap">
+          <image class="poster" src="{{item.logo}}" mode="aspectFill" />
+        </view>
+        <text class="movie-name">{{item.name}}</text>
+        <text class="movie-meta">{{item.type || ''}}{{item.type && item.duration ? ' · ' : ''}}{{item.duration ? item.duration + '分钟' : ''}}</text>
+      </view>
+      <view wx:if="{{hotMovies.length === 0}}" class="empty">暂无热映影片</view>
+    </scroll-view>
+  </view>
+
+  <!-- 即将上映 -->
+  <view class="movie-section">
+    <view class="section-header">
+      <text class="section-title">即将上映</text>
+      <text class="section-count">共{{futureMovies.length}}部</text>
+    </view>
+    <view wx:if="{{loadingFutureMovies}}" class="loading-wrap">加载中...</view>
+    <scroll-view wx:else scroll-x class="movie-scroll" show-scrollbar="{{false}}">
+      <view
+        wx:for="{{futureMovies}}"
+        wx:key="id"
+        class="movie-card"
+        data-id="{{item.id}}"
+        bindtap="goMovie"
+      >
+        <view class="poster-wrap">
+          <image class="poster" src="{{item.logo}}" mode="aspectFill" />
+        </view>
+        <text class="movie-name">{{item.name}}</text>
+        <text class="movie-meta">{{item.type || ''}}{{item.type && item.duration ? ' · ' : ''}}{{item.duration ? item.duration + '分钟' : ''}}</text>
+      </view>
+      <view wx:if="{{futureMovies.length === 0}}" class="empty">暂无即将上映</view>
+    </scroll-view>
+  </view>
+
+  <!-- 底部导航栏：未选中仅图标（IMAX仅文字），选中图标+文字+红底 -->
+  <view class="bottom-nav">
+    <view
+      wx:for="{{navItems}}"
+      wx:key="key"
+      class="nav-item {{item.active ? 'active' : ''}}"
+      data-index="{{index}}"
+      bindtap="onNavTap"
+    >
+      <view class="nav-item-inner">
+        <image wx:if="{{item.icon}}" class="nav-icon {{item.key === 'user' ? 'nav-icon-user' : ''}}" src="{{item.active ? item.iconActive : item.icon}}" mode="aspectFit" />
+        <text wx:if="{{item.key === 'imax'}}" class="nav-label imax-text">{{item.name}}</text>
+        <text wx:elif="{{item.active}}" class="nav-label">{{item.name}}</text>
+      </view>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,8 @@
+/**
+ * Cinema 售票平台 - VI 视觉识别系统
+ * 统一入口：颜色、字体、间距、组件
+ */
+@import './colors.wxss';
+@import './typography.wxss';
+@import './spacing.wxss';
+@import './components.wxss';

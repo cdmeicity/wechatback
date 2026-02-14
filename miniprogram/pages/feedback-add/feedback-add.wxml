@@ -1,0 +1,55 @@
+<view class="feedback-add-page light-theme">
+  <view class="feedback-add-form">
+    <view class="feedback-add-field">
+      <text class="feedback-add-label">标题</text>
+      <input
+        class="feedback-add-input"
+        placeholder="请输入反馈标题"
+        value="{{title}}"
+        bindinput="onTitleInput"
+        maxlength="80"
+      />
+    </view>
+    <view class="feedback-add-field">
+      <text class="feedback-add-label">反馈内容</text>
+      <textarea
+        class="feedback-add-textarea"
+        placeholder="请详细描述您的问题或建议"
+        value="{{content}}"
+        bindinput="onContentInput"
+        maxlength="500"
+        show-confirm-bar="{{false}}"
+      />
+    </view>
+    <view class="feedback-add-field">
+      <text class="feedback-add-label">图片（选填，最多9张）</text>
+      <view class="feedback-add-images">
+        <view
+          wx:for="{{imageList}}"
+          wx:key="*this"
+          class="feedback-add-img-wrap"
+        >
+          <image class="feedback-add-img" src="{{item}}" mode="aspectFill" />
+          <view class="feedback-add-img-del" data-index="{{index}}" bindtap="onRemoveImage">×</view>
+        </view>
+        <view
+          wx:if="{{imageList.length < 9}}"
+          class="feedback-add-img-add"
+          bindtap="onChooseImage"
+        >
+          <text class="feedback-add-img-add-icon">+</text>
+          <text class="feedback-add-img-add-text">添加图片</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="feedback-add-actions">
+    <view
+      class="feedback-add-submit {{submitting ? 'feedback-add-submit-disabled' : ''}}"
+      bindtap="onSubmit"
+    >
+      <text>提交</text>
+    </view>
+  </view>
+</view>

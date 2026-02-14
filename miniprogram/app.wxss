@@ -1,0 +1,13 @@
+/**app.wxss - Cinema 售票平台 VI 规范**/
+@import './styles/vi.wxss';
+
+page {
+  background-color: var(--background-dark);
+  color: var(--text-primary-dark);
+  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Roboto', sans-serif;
+}
+
+.container {
+  padding: var(--space-medium);
+  box-sizing: border-box;
+}

@@ -1,0 +1,63 @@
+/**
+ * Cinema 售票平台 - 组件规范 (VI 规范)
+ * 按钮、卡片、输入框等基础样式
+ */
+
+/* 主要按钮 */
+.btn-primary {
+  height: var(--height-button);
+  line-height: var(--height-button);
+  background: var(--primary);
+  color: #FFFFFF;
+  font-size: var(--font-button);
+  font-weight: 600;
+  border-radius: var(--radius-medium);
+  padding: 0 var(--space-large);
+  text-align: center;
+}
+
+/* 次要按钮 */
+.btn-secondary {
+  height: var(--height-button);
+  line-height: var(--height-button);
+  background: transparent;
+  color: var(--primary);
+  font-size: var(--font-button);
+  font-weight: 600;
+  border: 4rpx solid var(--primary);
+  border-radius: var(--radius-medium);
+  padding: 0 var(--space-large);
+  text-align: center;
+}
+
+/* 文本按钮 */
+.btn-text {
+  padding: var(--space-small) var(--space-medium);
+  color: var(--primary);
+  font-size: var(--font-body2);
+  font-weight: 600;
+  background: transparent;
+}
+
+/* 卡片 */
+.card {
+  background: var(--surface-dark);
+  border-radius: var(--radius-large);
+  padding: var(--space-medium);
+  margin-bottom: var(--space-small);
+}
+
+/* 输入框 */
+.input {
+  height: var(--height-input);
+  background: var(--surface-dark);
+  border: 2rpx solid var(--border);
+  border-radius: var(--radius-medium);
+  padding: 0 var(--space-medium);
+  font-size: var(--font-body1);
+  color: var(--text-primary-dark);
+}
+
+.input:focus {
+  border-color: var(--primary);
+}

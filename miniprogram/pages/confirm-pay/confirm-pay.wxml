@@ -1,0 +1,153 @@
+<view class="page confirm-pay-page">
+  <scroll-view scroll-y class="content" enhanced show-scrollbar="{{false}}">
+    <!-- 电影信息卡片 -->
+    <view class="movie-card">
+      <view class="poster-wrap">
+        <image
+          wx:if="{{moviePoster}}"
+          class="poster"
+          src="{{moviePoster}}"
+          mode="aspectFill"
+        />
+        <view wx:else class="poster-placeholder">🎬</view>
+      </view>
+      <view class="movie-info">
+        <text class="movie-name">{{movieName}}</text>
+        <text wx:if="{{movieType}}" class="movie-type">{{movieType}}</text>
+        <text class="showtime-info">{{hallName}} | {{showtimeStr}}</text>
+        <text class="seat-info">座位：{{seatList}}</text>
+      </view>
+    </view>
+
+    <!-- 支付方式 -->
+    <view class="section">
+      <text class="section-title">支付方式</text>
+      <view class="payment-methods">
+        <view
+          wx:if="{{!onlyMemberCard}}"
+          class="payment-item {{selectedMethod === 'wechat' ? 'selected' : ''}}"
+          data-method="wechat"
+          bindtap="onSelectPayment"
+        >
+          <view class="payment-icon wechat">💬</view>
+          <text class="payment-name">微信支付</text>
+          <view class="radio {{selectedMethod === 'wechat' ? 'checked' : ''}}"></view>
+        </view>
+        <view
+          wx:if="{{!onlyMemberCard}}"
+          class="payment-item {{selectedMethod === 'coupon' ? 'selected' : ''}}"
+          data-method="coupon"
+          bindtap="onSelectPayment"
+        >
+          <view class="payment-icon coupon">🎫</view>
+          <text class="payment-name">券支付</text>
+          <view class="radio {{selectedMethod === 'coupon' ? 'checked' : ''}}"></view>
+        </view>
+        <view
+          wx:if="{{cardInfo || onlyMemberCard}}"
+          class="payment-item {{selectedMethod === 'memberCard' ? 'selected' : ''}}"
+          data-method="memberCard"
+          bindtap="onSelectPayment"
+        >
+          <view class="payment-icon member">💳</view>
+          <view class="payment-info">
+            <text class="payment-name">会员卡支付</text>
+            <text wx:if="{{cardInfo.cardNumber}}" class="payment-extra">{{cardInfo.cardNumber}}</text>
+          </view>
+          <view class="radio {{selectedMethod === 'memberCard' ? 'checked' : ''}}"></view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 优惠券（仅会员卡模式不显示） -->
+    <view wx:if="{{!onlyMemberCard}}" class="section coupon-section">
+      <view class="section-row">
+        <text class="section-title">优惠券</text>
+        <text class="coupon-link" bindtap="onAddCoupon">添加优惠券</text>
+      </view>
+      <view class="coupon-add-cell" bindtap="onAddCoupon">
+        <text class="coupon-add-placeholder">输入券码绑定后可在此使用</text>
+        <text class="arrow">›</text>
+      </view>
+      <!-- 已绑定的券列表 -->
+      <view wx:if="{{boundCouponList.length > 0}}" class="coupon-list-title">已绑定的券</view>
+      <view wx:if="{{boundCouponList.length > 0}}" class="bound-coupon-list">
+        <view
+          wx:for="{{boundCouponList}}"
+          wx:key="id"
+          class="bound-coupon-item"
+        >
+          <text class="bound-coupon-code">{{item.couponCodeMasked}}</text>
+          <text class="bound-coupon-valid">有效期至 {{item.validToStr}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 订单汇总 -->
+    <view class="section summary">
+      <view class="summary-row">
+        <text class="summary-label">商品总计</text>
+        <text class="summary-value">¥{{baseTotal}}</text>
+      </view>
+      <view wx:if="{{discountAmount > 0}}" class="summary-row discount">
+        <text class="summary-label">优惠</text>
+        <text class="summary-value">-¥{{discountAmount}}</text>
+      </view>
+      <view class="summary-row total">
+        <text class="summary-label">总计</text>
+        <text class="summary-value primary">¥{{grandTotal}}</text>
+      </view>
+    </view>
+
+    <view class="bottom-spacer"></view>
+  </scroll-view>
+
+  <!-- 添加优惠券弹窗：输入券码 + 确认 -->
+  <view wx:if="{{showCouponModal}}" class="coupon-modal-mask" catchtouchmove="preventTouchMove" bindtap="onCouponModalCancel">
+    <view class="coupon-modal" catchtap="preventTouchMove">
+      <view class="coupon-modal-title">添加优惠券</view>
+      <view class="coupon-modal-desc">请输入券码</view>
+      <input
+        class="coupon-modal-input"
+        type="text"
+        placeholder="请输入券码"
+        value="{{_couponCodeInput}}"
+        bindinput="onCouponCodeInput"
+      />
+      <view class="coupon-modal-actions">
+        <view class="coupon-modal-btn cancel" bindtap="onCouponModalCancel">取消</view>
+        <view class="coupon-modal-btn confirm {{_couponSubmitting ? 'disabled' : ''}}" bindtap="onCouponModalConfirm">确认</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 会员卡密码弹窗 -->
+  <view wx:if="{{showPasswordModal}}" class="password-modal-mask" catchtouchmove="preventTouchMove"
+    bindtap="onPasswordCancel">
+    <view class="password-modal" catchtap="preventTouchMove">
+      <view class="password-modal-title">会员卡密码验证</view>
+      <view class="password-modal-desc">请输入会员卡密码</view>
+      <input
+        class="password-input"
+        type="number"
+        password="{{true}}"
+        placeholder="请输入密码"
+        value="{{_passwordInput}}"
+        bindinput="onPasswordInput"
+      />
+      <view class="password-modal-actions">
+        <view class="password-btn cancel" bindtap="onPasswordCancel">取消</view>
+        <view class="password-btn confirm" bindtap="onPasswordConfirm">确认</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部支付按钮 -->
+  <view class="bottom-bar">
+    <view class="total-wrap">
+      <text class="total-label">应付金额</text>
+      <text class="total-price">¥{{grandTotal}}</text>
+    </view>
+    <button class="btn-pay" bindtap="onPay">立即支付</button>
+  </view>
+</view>

@@ -1,0 +1,39 @@
+<view class="coupon-page light-theme">
+  <view wx:if="{{isLoggedIn}}" class="coupon-header">
+    <view class="coupon-add-btn" bindtap="onAddBind">
+      <text class="coupon-add-icon">+</text>
+      <text class="coupon-add-text">新绑券</text>
+    </view>
+  </view>
+
+  <scroll-view wx:if="{{isLoggedIn}}" scroll-y class="coupon-scroll" enhanced show-scrollbar="{{false}}">
+    <view wx:if="{{loading}}" class="coupon-loading">
+      <text>加载中...</text>
+    </view>
+    <view wx:elif="{{list.length === 0}}" class="coupon-empty">
+      <text class="coupon-empty-icon">🎫</text>
+      <text class="coupon-empty-text">暂无券</text>
+      <text class="coupon-empty-hint">点击上方「新绑券」输入券码绑定</text>
+    </view>
+    <view wx:else class="coupon-list">
+      <view
+        wx:for="{{list}}"
+        wx:key="id"
+        class="coupon-card"
+      >
+        <view class="coupon-card-code">{{item.couponCodeMasked}}</view>
+        <view class="coupon-card-meta">
+          <text class="coupon-card-label">截止有效期</text>
+          <text class="coupon-card-time">{{item.validToStr}}</text>
+        </view>
+      </view>
+    </view>
+    <view class="coupon-bottom-pad"></view>
+  </scroll-view>
+
+  <view wx:if="{{!isLoggedIn && !loading}}" class="coupon-login-wrap">
+    <text class="coupon-login-icon">🔐</text>
+    <text class="coupon-login-text">请先登录后查看券列表</text>
+    <view class="coupon-login-btn" bindtap="onGoLogin">去登录</view>
+  </view>
+</view>

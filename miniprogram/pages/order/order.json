@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "我的订单",
+  "enablePullDownRefresh": true,
+  "usingComponents": {
+    "phone-login-modal": "/components/phone-login-modal/phone-login-modal"
+  }
+}

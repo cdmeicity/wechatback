@@ -1,0 +1,135 @@
+/**
+ * 新增问题反馈 - VI 规范
+ */
+@import '../../styles/vi.wxss';
+
+page {
+  background: var(--background);
+}
+
+.feedback-add-page.light-theme {
+  min-height: 100vh;
+  padding: var(--space-large);
+  padding-bottom: 160rpx;
+  box-sizing: border-box;
+  background: var(--background);
+}
+
+.feedback-add-form {
+  background: var(--surface);
+  border-radius: var(--radius-medium);
+  border: 2rpx solid var(--border);
+  overflow: hidden;
+  margin-bottom: var(--space-large);
+}
+
+.feedback-add-field {
+  padding: var(--space-medium) var(--space-large);
+  border-bottom: 2rpx solid var(--border);
+}
+
+.feedback-add-field:last-child {
+  border-bottom: none;
+}
+
+.feedback-add-label {
+  display: block;
+  font-size: var(--font-body2);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: var(--space-xsmall);
+}
+
+.feedback-add-input {
+  width: 100%;
+  height: var(--height-input);
+  font-size: var(--font-body1);
+  color: var(--text-primary);
+  box-sizing: border-box;
+}
+
+.feedback-add-textarea {
+  width: 100%;
+  min-height: 240rpx;
+  font-size: var(--font-body1);
+  color: var(--text-primary);
+  line-height: 1.5;
+  box-sizing: border-box;
+}
+
+.feedback-add-images {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-small);
+}
+
+.feedback-add-img-wrap {
+  position: relative;
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: var(--radius-small);
+  overflow: hidden;
+  background: var(--background);
+}
+
+.feedback-add-img {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.feedback-add-img-del {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 44rpx;
+  height: 44rpx;
+  background: rgba(0,0,0,0.5);
+  color: #fff;
+  font-size: 36rpx;
+  line-height: 44rpx;
+  text-align: center;
+}
+
+.feedback-add-img-add {
+  width: 160rpx;
+  height: 160rpx;
+  border: 2rpx dashed var(--border);
+  border-radius: var(--radius-small);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4rpx;
+}
+
+.feedback-add-img-add-icon {
+  font-size: 48rpx;
+  color: var(--text-placeholder);
+  line-height: 1;
+}
+
+.feedback-add-img-add-text {
+  font-size: var(--font-caption);
+  color: var(--text-placeholder);
+}
+
+.feedback-add-actions {
+  padding: 0 var(--space-medium);
+}
+
+.feedback-add-submit {
+  height: var(--height-button);
+  background: var(--primary);
+  border-radius: var(--radius-medium);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: var(--font-button);
+  font-weight: 600;
+}
+
+.feedback-add-submit-disabled {
+  opacity: 0.6;
+}

@@ -1,0 +1,153 @@
+/**
+ * 券列表 - VI 规范
+ */
+@import '../../styles/vi.wxss';
+
+page {
+  background: var(--background);
+}
+
+.coupon-page.light-theme {
+  min-height: 100vh;
+  background: var(--background);
+  box-sizing: border-box;
+}
+
+.coupon-header {
+  padding: var(--space-medium) var(--space-large);
+  background: var(--surface);
+  border-bottom: 2rpx solid var(--border);
+}
+
+.coupon-add-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--height-button);
+  background: var(--primary);
+  border-radius: var(--radius-medium);
+  color: #fff;
+  gap: var(--space-xsmall);
+}
+
+.coupon-add-icon {
+  font-size: 40rpx;
+  font-weight: 300;
+  line-height: 1;
+}
+
+.coupon-add-text {
+  font-size: var(--font-button);
+  font-weight: 600;
+}
+
+.coupon-scroll {
+  height: calc(100vh - 120rpx);
+  padding: var(--space-medium);
+  box-sizing: border-box;
+}
+
+.coupon-loading {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-xxlarge);
+  font-size: var(--font-body1);
+  color: var(--text-secondary);
+}
+
+.coupon-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--space-xxlarge);
+}
+
+.coupon-empty-icon {
+  font-size: 96rpx;
+  margin-bottom: var(--space-medium);
+}
+
+.coupon-empty-text {
+  font-size: var(--font-body1);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-xsmall);
+}
+
+.coupon-empty-hint {
+  font-size: var(--font-caption);
+  color: var(--text-placeholder);
+}
+
+.coupon-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-medium);
+}
+
+.coupon-card {
+  background: var(--surface);
+  border-radius: var(--radius-medium);
+  border: 2rpx solid var(--border);
+  padding: var(--space-large);
+  box-sizing: border-box;
+}
+
+.coupon-card-code {
+  font-size: var(--font-h6);
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: 2rpx;
+  margin-bottom: var(--space-small);
+}
+
+.coupon-card-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-xsmall);
+}
+
+.coupon-card-label {
+  font-size: var(--font-caption);
+  color: var(--text-placeholder);
+}
+
+.coupon-card-time {
+  font-size: var(--font-body2);
+  color: var(--text-secondary);
+}
+
+.coupon-bottom-pad {
+  height: var(--space-large);
+}
+
+/* 未登录提示 */
+.coupon-login-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  padding: var(--space-large);
+}
+
+.coupon-login-icon {
+  font-size: 96rpx;
+  margin-bottom: var(--space-medium);
+}
+
+.coupon-login-text {
+  font-size: var(--font-body1);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-xxlarge);
+}
+
+.coupon-login-btn {
+  padding: var(--space-medium) var(--space-xxlarge);
+  background: var(--primary);
+  color: #fff;
+  font-size: var(--font-button);
+  font-weight: 600;
+  border-radius: var(--radius-medium);
+}

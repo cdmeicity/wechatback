@@ -1,0 +1,396 @@
+/* 排期页面 - Play，遵循 VI 规范 */
+
+page {
+  background: var(--background);
+}
+
+.play-page.light-theme {
+  min-height: 100vh;
+  width: 100%;
+  padding-top: 0;
+  padding-bottom: calc(var(--height-button) + var(--space-large) * 2);
+  box-sizing: border-box;
+  background: var(--background);
+  overflow-x: hidden;
+}
+
+/* AppBar：高度与胶囊下沿齐平，内容与胶囊下沿对齐 */
+.appbar {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 0 var(--space-small) 12rpx;
+  background: var(--surface);
+  border-bottom: 2rpx solid var(--border);
+}
+
+.appbar-back {
+  width: 88rpx;
+  height: 88rpx;
+  min-height: 88rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.back-icon {
+  font-size: 56rpx;
+  font-weight: 300;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.appbar-title {
+  flex: 1;
+  font-size: var(--font-h5);
+  font-weight: 700;
+  color: var(--text-primary);
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.appbar-placeholder {
+  width: 88rpx;
+}
+
+/* 影片轮播 - 上下30单位(60rpx)，选中居中 */
+.movie-section {
+  padding: 60rpx 0;
+  background: var(--surface);
+}
+
+.movie-scroll {
+  white-space: nowrap;
+  padding: 0 var(--space-small);
+}
+
+.movie-item {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  width: 200rpx;
+  margin-right: var(--space-small);
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.movie-item.active {
+  width: 260rpx;
+}
+
+.movie-poster-wrap {
+  position: relative;
+  width: 160rpx;
+  height: 220rpx;
+  margin: 0 auto var(--space-xsmall);
+  border-radius: var(--radius-medium);
+  overflow: hidden;
+  border: 4rpx solid transparent;
+  transition: all 0.2s;
+}
+
+.movie-item.active .movie-poster-wrap {
+  width: 200rpx;
+  height: 280rpx;
+  border-color: var(--primary);
+  box-shadow: 0 8rpx 24rpx rgba(254, 74, 73, 0.25);
+}
+
+.movie-poster {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.movie-check {
+  position: absolute;
+  top: 8rpx;
+  right: 8rpx;
+  width: 40rpx;
+  height: 40rpx;
+  line-height: 40rpx;
+  text-align: center;
+  font-size: 24rpx;
+  font-weight: 700;
+  color: #FFF;
+  background: var(--primary);
+  border-radius: 50%;
+}
+
+.movie-name {
+  display: block;
+  font-size: var(--font-body2);
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.movie-item.active .movie-name {
+  font-size: var(--font-h5);
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.movie-meta {
+  display: block;
+  font-size: var(--font-caption);
+  color: var(--text-secondary);
+  margin-top: var(--space-xsmall);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 日期选择 - 适中尺寸 */
+.date-section {
+  padding: var(--space-small) 0;
+  background: var(--surface);
+  border-bottom: 2rpx solid var(--border);
+}
+
+.date-scroll {
+  white-space: nowrap;
+  padding: 0 var(--space-small);
+}
+
+.date-item {
+  display: inline-block;
+  width: 96rpx;
+  padding: var(--space-small) var(--space-xsmall);
+  margin-right: var(--space-xsmall);
+  text-align: center;
+  border-radius: var(--radius-small);
+  border: 2rpx solid var(--border);
+  background: var(--surface);
+}
+
+.date-item.active {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+.date-num {
+  display: block;
+  font-size: var(--font-caption);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.date-item.active .date-num {
+  color: #FFF;
+}
+
+.date-week {
+  display: block;
+  font-size: 20rpx;
+  color: var(--text-secondary);
+  margin-top: 4rpx;
+}
+
+.date-item.active .date-week {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* 场次列表容器：登录弹窗挂在此区域，点击场次未登录时弹出 */
+.showtime-list-wrap {
+  position: relative;
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.showtime-list {
+  flex: 1;
+  width: 100%;
+  box-sizing: border-box;
+  height: calc(100vh - 480rpx);
+  padding: var(--space-medium) var(--space-small);
+  overflow-x: hidden;
+}
+.price-login-hint {
+  font-size: var(--font-h2);
+  color: var(--text-secondary);
+  font-size: var(--font-caption);
+}
+
+.empty-hint, .loading-hint {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-xxlarge);
+  color: var(--text-secondary);
+  font-size: var(--font-body1);
+}
+
+.hint-icon {
+  font-size: 96rpx;
+  margin-bottom: var(--space-medium);
+}
+
+.hint-text {
+  color: var(--text-secondary);
+}
+
+/* 场次卡片 - 白底、细边框、轻微阴影，自适应宽度不溢出 */
+.showtime-card {
+  display: flex;
+  align-items: stretch;
+  margin-bottom: var(--space-medium);
+  padding: var(--space-medium);
+  background: var(--surface);
+  border-radius: var(--radius-medium);
+  border: 2rpx solid var(--border);
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.showtime-card.active {
+  border-color: var(--primary);
+  border-width: 4rpx;
+  background: rgba(254, 74, 73, 0.06);
+  box-shadow: 0 4rpx 16rpx rgba(254, 74, 73, 0.2);
+}
+
+.showtime-left {
+  flex: 0 0 40%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.time-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: var(--space-xsmall);
+}
+
+.time-row:last-child {
+  margin-bottom: 0;
+}
+
+.time-icon {
+  font-size: 24rpx;
+  color: var(--text-secondary);
+  margin-right: var(--space-xsmall);
+}
+
+.showtime-card.active .time-icon {
+  color: var(--primary);
+}
+
+.time-label {
+  font-size: var(--font-caption);
+  color: var(--text-secondary);
+  margin-right: var(--space-xsmall);
+}
+
+.time-value {
+  font-size: var(--font-h4);
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.showtime-card.active .time-value {
+  color: var(--primary);
+}
+
+.time-value.secondary {
+  font-size: var(--font-body1);
+  font-weight: 400;
+}
+
+.showtime-divider {
+  width: 2rpx;
+  background: var(--border);
+  margin: 0 var(--space-medium);
+}
+
+.showtime-right {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.showtime-right .info-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: var(--space-xsmall);
+}
+
+.info-icon {
+  font-size: 28rpx;
+  margin-right: var(--space-xsmall);
+  color: var(--text-secondary);
+}
+
+.hall-name {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--font-body1);
+  font-weight: 600;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.format {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--font-body2);
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.price-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: var(--space-small);
+}
+
+.price-label {
+  font-size: var(--font-caption);
+  color: var(--text-secondary);
+}
+
+.price-value {
+  font-size: var(--font-h4);
+  font-weight: 700;
+  color: var(--primary);
+}
+
+/* 底部按钮 */
+.bottom-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: var(--space-large);
+  background: transparent;
+}
+
+.btn-primary {
+  height: var(--height-button);
+  line-height: var(--height-button);
+  background: var(--primary);
+  color: #FFF;
+  font-size: var(--font-button);
+  font-weight: 600;
+  border-radius: var(--radius-medium);
+  text-align: center;
+}

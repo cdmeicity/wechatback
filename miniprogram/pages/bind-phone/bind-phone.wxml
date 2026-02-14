@@ -1,0 +1,35 @@
+<view class="bind-page">
+  <view class="bind-close" bindtap="onClose">
+    <text class="bind-close-icon">×</text>
+  </view>
+  <view class="header">
+    <text class="title">请绑定手机号</text>
+    <text class="desc">绑定后即可正常购票</text>
+  </view>
+  <view class="form">
+    <view class="input-row">
+      <input
+        class="input"
+        type="number"
+        maxlength="11"
+        placeholder="请输入手机号"
+        value="{{phone}}"
+        bindinput="onPhoneInput"
+      />
+    </view>
+    <view class="input-row code-row">
+      <input
+        class="input code-input"
+        type="number"
+        maxlength="6"
+        placeholder="请输入验证码"
+        value="{{code}}"
+        bindinput="onCodeInput"
+      />
+      <button class="btn-send" disabled="{{countdown > 0}}" bindtap="onSendCode">
+        {{countdown > 0 ? countdown + 's 后重发' : '获取验证码'}}
+      </button>
+    </view>
+    <button class="btn-bind" bindtap="onBind">绑定</button>
+  </view>
+</view>

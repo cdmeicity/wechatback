@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "IMAX",
+  "navigationStyle": "custom",
+  "usingComponents": {
+    "phone-login-modal": "/components/phone-login-modal/phone-login-modal"
+  }
+}

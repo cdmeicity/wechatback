@@ -1,0 +1,228 @@
+<!-- 影票详情页：入参 out_trade_no，查询 cinema_order_list 后展示票卡与条形码 -->
+<view class="ticketinfo-page">
+  <view class="ticketinfo-body">
+    <block wx:if="{{loading}}">
+      <view class="ticketinfo-loading">
+        <view class="ticketinfo-spinner"></view>
+        <text class="ticketinfo-loading-text">加载中...</text>
+      </view>
+    </block>
+    <block wx:elif="{{errorMessage}}">
+      <view class="ticketinfo-error">
+        <text class="ticketinfo-error-text">{{errorMessage}}</text>
+      </view>
+    </block>
+    <block wx:elif="{{!orderInfo}}">
+      <view class="ticketinfo-error">
+        <text class="ticketinfo-error-text">订单数据异常</text>
+      </view>
+    </block>
+    <!-- 有订单但暂无条形码：仍展示订单信息，并提示刷新 -->
+    <block wx:elif="{{barcodeList.length === 0}}">
+      <scroll-view scroll-y class="ticketinfo-scroll" enhanced show-scrollbar="{{false}}">
+        <view class="ticketinfo-card">
+          <view class="ticketinfo-card-movie">
+            <view class="ticketinfo-poster-wrap">
+              <image
+                wx:if="{{movieDisplay.poster}}"
+                class="ticketinfo-poster"
+                src="{{movieDisplay.poster}}"
+                mode="aspectFill"
+              />
+              <view wx:else class="ticketinfo-poster-placeholder">
+                <text class="ticketinfo-poster-icon">🎬</text>
+              </view>
+            </view>
+            <view class="ticketinfo-movie-right">
+              <text class="ticketinfo-movie-name">{{movieDisplay.name}}</text>
+              <text wx:if="{{movieDisplay.language}}" class="ticketinfo-movie-meta">{{movieDisplay.language}}</text>
+              <text wx:if="{{movieDisplay.duration}}" class="ticketinfo-movie-meta">片长{{movieDisplay.duration}}分钟</text>
+              <text wx:if="{{movieDisplay.actors}}" class="ticketinfo-movie-meta">主演：{{movieDisplay.actors}}</text>
+            </view>
+          </view>
+          <view class="ticketinfo-cinema-row">
+            <text class="ticketinfo-cinema-name">美承影院-{{orderInfo.cinemaName}}</text>
+          </view>
+          <view class="ticketinfo-meta-row">
+            <text class="ticketinfo-meta">{{movieDisplay.format}} · {{displayHallName}}</text>
+          </view>
+          <view class="ticketinfo-meta-row">
+            <text class="ticketinfo-meta">{{displayDate}} {{displayTimeRange}}</text>
+          </view>
+          <view class="ticketinfo-seats-row">
+            <text wx:for="{{orderInfo.seats}}" wx:key="*this" class="ticketinfo-seat">{{item}}</text>
+          </view>
+          <view class="ticketinfo-meta-row">
+            <text class="ticketinfo-meta">{{orderInfo.seatCount}}人</text>
+          </view>
+          <view class="ticketinfo-dashed"></view>
+          <view class="ticketinfo-booking">
+            <view class="ticketinfo-booking-row">
+              <text class="ticketinfo-booking-label">订单编号</text>
+              <text class="ticketinfo-booking-value">{{displayTicketId}}</text>
+            </view>
+            <view class="ticketinfo-booking-row">
+              <text class="ticketinfo-booking-label">支付编号</text>
+              <text class="ticketinfo-booking-value ticketinfo-booking-ellipsis">{{displayTransactionId}}</text>
+            </view>
+            <view class="ticketinfo-booking-row">
+              <text class="ticketinfo-booking-label">支付时间</text>
+              <text class="ticketinfo-booking-value">{{displayPayTime}}</text>
+            </view>
+          </view>
+          <view class="ticketinfo-dashed ticketinfo-dashed-barcode"></view>
+          <view class="ticketinfo-no-barcode">
+            <text class="ticketinfo-no-barcode-text">取票码生成中，请稍候刷新</text>
+            <view class="ticketinfo-refresh-btn" bindtap="onRefreshBarcode">刷新取票码</view>
+          </view>
+        </view>
+      </scroll-view>
+    </block>
+    <block wx:else>
+      <!-- 单张条形码：整张白色卡片（含条形码）在同一列内，用 scroll-view 一起滚动 -->
+      <block wx:if="{{barcodeList.length === 1}}">
+        <scroll-view scroll-y class="ticketinfo-scroll" enhanced show-scrollbar="{{false}}">
+          <view class="ticketinfo-card">
+            <view class="ticketinfo-card-movie">
+              <view class="ticketinfo-poster-wrap">
+                <image
+                  wx:if="{{movieDisplay.poster}}"
+                  class="ticketinfo-poster"
+                  src="{{movieDisplay.poster}}"
+                  mode="aspectFill"
+                />
+                <view wx:else class="ticketinfo-poster-placeholder">
+                  <text class="ticketinfo-poster-icon">🎬</text>
+                </view>
+              </view>
+              <view class="ticketinfo-movie-right">
+                <text class="ticketinfo-movie-name">{{movieDisplay.name}}</text>
+                <text wx:if="{{movieDisplay.language}}" class="ticketinfo-movie-meta">{{movieDisplay.language}}</text>
+                <text wx:if="{{movieDisplay.duration}}" class="ticketinfo-movie-meta">片长{{movieDisplay.duration}}分钟</text>
+                <text wx:if="{{movieDisplay.actors}}" class="ticketinfo-movie-meta">主演：{{movieDisplay.actors}}</text>
+              </view>
+            </view>
+            <view class="ticketinfo-cinema-row">
+              <text class="ticketinfo-cinema-name">美承影院-{{orderInfo.cinemaName}}</text>
+            </view>
+            <view class="ticketinfo-meta-row">
+              <text class="ticketinfo-meta">{{movieDisplay.format}} · {{displayHallName}}</text>
+            </view>
+            <view class="ticketinfo-meta-row">
+              <text class="ticketinfo-meta">{{displayDate}} {{displayTimeRange}}</text>
+            </view>
+            <view class="ticketinfo-seats-row">
+              <text wx:for="{{orderInfo.seats}}" wx:key="*this" class="ticketinfo-seat">{{item}}</text>
+            </view>
+            <view class="ticketinfo-meta-row">
+              <text class="ticketinfo-meta">{{orderInfo.seatCount}}人</text>
+            </view>
+
+            <view class="ticketinfo-dashed"></view>
+
+            <view class="ticketinfo-booking">
+              <view class="ticketinfo-booking-row">
+                <text class="ticketinfo-booking-label">订单编号</text>
+                <text class="ticketinfo-booking-value">{{displayTicketId}}</text>
+              </view>
+              <view class="ticketinfo-booking-row">
+                <text class="ticketinfo-booking-label">支付编号</text>
+                <text class="ticketinfo-booking-value ticketinfo-booking-ellipsis">{{displayTransactionId}}</text>
+              </view>
+              <view class="ticketinfo-booking-row">
+                <text class="ticketinfo-booking-label">支付时间</text>
+                <text class="ticketinfo-booking-value">{{displayPayTime}}</text>
+              </view>
+            </view>
+
+            <view class="ticketinfo-dashed ticketinfo-dashed-barcode"></view>
+
+            <view class="ticketinfo-barcode-wrap">
+              <text class="ticketinfo-barcode-hint">请出示此二维码给到前台人员取票</text>
+              <view class="ticketinfo-barcode-box {{qrBlur ? 'ticketinfo-qrcode-blur' : ''}}">
+                <canvas type="2d" id="barcodeCanvas0" class="ticketinfo-qrcode-canvas"></canvas>
+              </view>
+            </view>
+          </view>
+        </scroll-view>
+      </block>
+
+      <!-- 多张条形码：与单张相同布局，仅一个 canvas，通过上一张/下一张切换并重绘 -->
+      <block wx:else>
+        <scroll-view scroll-y class="ticketinfo-scroll" enhanced show-scrollbar="{{false}}">
+          <view class="ticketinfo-card">
+            <view class="ticketinfo-card-movie">
+              <view class="ticketinfo-poster-wrap">
+                <image
+                  wx:if="{{movieDisplay.poster}}"
+                  class="ticketinfo-poster"
+                  src="{{movieDisplay.poster}}"
+                  mode="aspectFill"
+                />
+                <view wx:else class="ticketinfo-poster-placeholder">
+                  <text class="ticketinfo-poster-icon">🎬</text>
+                </view>
+              </view>
+              <view class="ticketinfo-movie-right">
+                <text class="ticketinfo-movie-name">{{movieDisplay.name}}</text>
+                <text wx:if="{{movieDisplay.language}}" class="ticketinfo-movie-meta">{{movieDisplay.language}}</text>
+                <text wx:if="{{movieDisplay.duration}}" class="ticketinfo-movie-meta">片长{{movieDisplay.duration}}分钟</text>
+                <text wx:if="{{movieDisplay.actors}}" class="ticketinfo-movie-meta">主演：{{movieDisplay.actors}}</text>
+              </view>
+            </view>
+            <view class="ticketinfo-cinema-row">
+              <text class="ticketinfo-cinema-name">美承影院-{{orderInfo.cinemaName}}</text>
+            </view>
+            <view class="ticketinfo-meta-row">
+              <text class="ticketinfo-meta">{{movieDisplay.format}} · {{displayHallName}}</text>
+            </view>
+            <view class="ticketinfo-meta-row">
+              <text class="ticketinfo-meta">{{displayDate}} {{displayTimeRange}}</text>
+            </view>
+            <view class="ticketinfo-seats-row">
+              <text wx:for="{{orderInfo.seats}}" wx:key="*this" class="ticketinfo-seat">{{item}}</text>
+            </view>
+            <view class="ticketinfo-meta-row">
+              <text class="ticketinfo-meta">{{orderInfo.seatCount}}人</text>
+            </view>
+
+            <view class="ticketinfo-dashed"></view>
+
+            <view class="ticketinfo-booking">
+              <view class="ticketinfo-booking-row">
+                <text class="ticketinfo-booking-label">订单编号</text>
+                <text class="ticketinfo-booking-value">{{displayTicketId}}</text>
+              </view>
+              <view class="ticketinfo-booking-row">
+                <text class="ticketinfo-booking-label">支付编号</text>
+                <text class="ticketinfo-booking-value ticketinfo-booking-ellipsis">{{displayTransactionId}}</text>
+              </view>
+              <view class="ticketinfo-booking-row">
+                <text class="ticketinfo-booking-label">支付时间</text>
+                <text class="ticketinfo-booking-value">{{displayPayTime}}</text>
+              </view>
+            </view>
+
+            <view class="ticketinfo-dashed ticketinfo-dashed-barcode"></view>
+
+            <view class="ticketinfo-barcode-wrap">
+              <text class="ticketinfo-barcode-swiper-hint">第 {{currentBarcodeIndex + 1}} / {{barcodeList.length}} 张取票码</text>
+              <text class="ticketinfo-barcode-hint">请出示此二维码给到前台人员取票</text>
+              <view class="ticketinfo-barcode-box {{qrBlur ? 'ticketinfo-qrcode-blur' : ''}}">
+                <canvas type="2d" id="barcodeCanvasMulti" class="ticketinfo-qrcode-canvas"></canvas>
+              </view>
+              <view class="ticketinfo-barcode-nav">
+                <view class="ticketinfo-barcode-btn {{currentBarcodeIndex <= 0 ? 'ticketinfo-barcode-btn-disabled' : ''}}" bindtap="onPrevBarcode">上一张</view>
+                <view class="ticketinfo-barcode-btn {{currentBarcodeIndex >= barcodeList.length - 1 ? 'ticketinfo-barcode-btn-disabled' : ''}}" bindtap="onNextBarcode">下一张</view>
+              </view>
+            </view>
+          </view>
+        </scroll-view>
+      </block>
+    </block>
+  </view>
+
+  <view class="ticketinfo-footer">
+    <text class="ticketinfo-footer-text">承德美承影业有限公司</text>
+  </view>
+</view>

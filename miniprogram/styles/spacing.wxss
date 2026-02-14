@@ -1,0 +1,28 @@
+/**
+ * Cinema 售票平台 - 间距系统 (VI 规范)
+ * 基于 8px 网格，1px ≈ 2rpx
+ */
+page {
+  --space-xsmall: 8rpx;   /* 4px */
+  --space-small: 16rpx;   /* 8px */
+  --space-medium: 32rpx;  /* 16px */
+  --space-large: 48rpx;   /* 24px */
+  --space-xlarge: 64rpx;  /* 32px */
+  --space-xxlarge: 96rpx; /* 48px */
+  --space-xxxlarge: 128rpx; /* 64px */
+  /* 圆角 */
+  --radius-small: 8rpx;   /* 4px */
+  --radius-medium: 16rpx; /* 8px */
+  --radius-large: 24rpx;  /* 12px */
+  --radius-xlarge: 32rpx; /* 16px */
+  /* 组件尺寸 */
+  --height-button: 96rpx;  /* 48px */
+  --height-input: 112rpx;  /* 56px */
+  --height-appbar: 112rpx; /* 56px */
+  --height-bottom-nav: 128rpx; /* 64px */
+  /* 图标 */
+  --icon-small: 32rpx;
+  --icon-medium: 48rpx;
+  --icon-large: 64rpx;
+  --icon-xlarge: 96rpx;
+}

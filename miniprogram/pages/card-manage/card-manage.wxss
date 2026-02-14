@@ -1,0 +1,464 @@
+/* 会员卡管理 - VI 规范 */
+
+.page.light-theme {
+  min-height: 100vh;
+  background: var(--background);
+  box-sizing: border-box;
+}
+
+/* 标签栏 */
+.tabs {
+  display: flex;
+  background: var(--surface);
+  border-bottom: 2rpx solid var(--border);
+}
+
+.tab {
+  flex: 1;
+  padding: var(--space-large);
+  font-size: var(--font-body1);
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.tab.active {
+  color: var(--primary);
+  border-bottom: 4rpx solid var(--primary);
+}
+
+/* 内容区 */
+.content-scroll {
+  height: calc(100vh - 100rpx);
+}
+
+.tab-content {
+  padding: var(--space-large);
+}
+
+.section-title {
+  font-size: var(--font-h5);
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: var(--space-medium);
+}
+
+.loading-wrap,
+.empty-wrap {
+  padding: var(--space-xxlarge);
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: var(--font-body2);
+}
+
+/* 新办卡 - 卡类型横向轮播 */
+.card-carousel-wrap {
+  margin-bottom: var(--space-large);
+}
+
+.card-carousel {
+  height: 320rpx;
+}
+
+.card-carousel-item {
+  padding: var(--space-xlarge);
+  margin: 0 16rpx;
+  background: linear-gradient(145deg, #5c4033 0%, #3d2b25 100%);
+  border-radius: var(--radius-large);
+  border: 4rpx solid rgba(255, 255, 255, 0.2);
+  height: 280rpx;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: relative;
+  box-sizing: border-box;
+}
+
+.card-carousel-item.selected {
+  border-color: var(--primary);
+  background: linear-gradient(145deg, #6b3a2e 0%, #4a2820 100%);
+  box-shadow: 0 8rpx 24rpx rgba(254, 74, 73, 0.3);
+}
+
+.card-carousel-name {
+  font-size: var(--font-h5);
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: var(--space-medium);
+}
+
+.card-carousel-price {
+  font-size: 48rpx;
+  font-weight: 700;
+  color: #fff;
+}
+
+.card-carousel-original {
+  font-size: var(--font-body2);
+  color: rgba(255, 255, 255, 0.7);
+  margin-top: var(--space-xsmall);
+}
+
+.card-carousel-check {
+  position: absolute;
+  bottom: 24rpx;
+  right: 24rpx;
+  width: 48rpx;
+  height: 48rpx;
+  line-height: 48rpx;
+  text-align: center;
+  background: var(--primary);
+  border-radius: 50%;
+  color: #fff;
+  font-size: 28rpx;
+}
+
+/* 权益展示 */
+.benefits-section {
+  padding: var(--space-large);
+  background: var(--surface);
+  border-radius: var(--radius-medium);
+  border: 2rpx solid var(--border);
+  margin-bottom: var(--space-large);
+}
+
+.benefits-title-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-small);
+  margin-bottom: var(--space-medium);
+}
+
+.benefits-title {
+  font-size: var(--font-body1);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.benefits-tag {
+  font-size: var(--font-caption);
+  color: var(--primary);
+  background: rgba(254, 74, 73, 0.1);
+  padding: 4rpx 16rpx;
+  border-radius: var(--radius-small);
+}
+
+.benefits-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-small);
+}
+
+.benefit-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-small);
+}
+
+.benefit-icon {
+  font-size: 28rpx;
+}
+
+.benefit-text {
+  font-size: var(--font-body2);
+  color: var(--text-secondary);
+}
+
+/* 新办卡 - 协议与按钮 */
+.apply-section {
+  margin-top: var(--space-large);
+}
+
+.agree-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: var(--space-medium);
+}
+
+.agree-checkbox {
+  width: 40rpx;
+  height: 40rpx;
+  border: 2rpx solid var(--border);
+  border-radius: 50%;
+  margin-right: var(--space-small);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24rpx;
+  color: #fff;
+}
+
+.agree-checkbox.checked {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+.agree-text {
+  font-size: var(--font-body2);
+  color: var(--text-secondary);
+}
+
+.agree-link {
+  font-size: var(--font-body2);
+  color: var(--primary);
+  margin-left: 4rpx;
+}
+
+.apply-btn {
+  height: var(--height-button);
+  line-height: var(--height-button);
+  background: var(--primary);
+  color: #fff;
+  font-size: var(--font-button);
+  font-weight: 600;
+  text-align: center;
+  border-radius: var(--radius-medium);
+}
+
+.apply-btn.disabled {
+  background: var(--border);
+  color: var(--text-secondary);
+}
+
+/* 新办卡 - 办理表单弹窗 */
+.apply-form-mask {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-large);
+  box-sizing: border-box;
+}
+
+.apply-form-panel {
+  width: 100%;
+  max-width: 600rpx;
+  max-height: 85vh;
+  overflow-y: auto;
+  background: var(--surface);
+  border-radius: var(--radius-large);
+  padding: var(--space-xlarge);
+  box-sizing: border-box;
+}
+
+.apply-form-title {
+  font-size: var(--font-h5);
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: var(--space-small);
+}
+
+.apply-form-desc {
+  font-size: var(--font-body2);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-medium);
+}
+
+.apply-form-panel .form-group {
+  margin-bottom: var(--space-medium);
+}
+
+.apply-form-panel .form-label {
+  display: block;
+  font-size: var(--font-body2);
+  color: var(--text-secondary);
+  margin-bottom: 8rpx;
+}
+
+.apply-form-panel .form-input {
+  width: 100%;
+  height: 80rpx;
+  padding: 0 var(--space-medium);
+  background: var(--background);
+  border: 2rpx solid var(--border);
+  border-radius: var(--radius-small);
+  font-size: var(--font-body1);
+  box-sizing: border-box;
+}
+
+.apply-form-panel .form-picker {
+  height: 80rpx;
+  line-height: 80rpx;
+  padding: 0 var(--space-medium);
+  background: var(--background);
+  border: 2rpx solid var(--border);
+  border-radius: var(--radius-small);
+  font-size: var(--font-body1);
+  color: var(--text-primary);
+}
+
+.apply-form-btns {
+  display: flex;
+  gap: var(--space-medium);
+  margin-top: var(--space-xlarge);
+}
+
+.apply-form-btn {
+  flex: 1;
+  height: var(--height-button);
+  line-height: var(--height-button);
+  text-align: center;
+  font-size: var(--font-button);
+  font-weight: 600;
+  border-radius: var(--radius-medium);
+}
+
+.apply-form-btn.cancel {
+  background: var(--border);
+  color: var(--text-secondary);
+}
+
+.apply-form-btn.confirm {
+  background: var(--primary);
+  color: #fff;
+}
+
+/* 绑定卡 - 已绑定展示（卡面） */
+.bound-card-view {
+  padding-bottom: var(--space-large);
+}
+
+.card-face {
+  padding: var(--space-xlarge);
+  background: linear-gradient(145deg, #5c4033 0%, #3d2b25 100%);
+  border-radius: var(--radius-large);
+  box-shadow: 0 12rpx 30rpx rgba(0, 0, 0, 0.25);
+  margin-bottom: var(--space-large);
+  border: 4rpx solid rgba(255, 255, 255, 0.15);
+}
+
+.card-face-name {
+  font-size: var(--font-h5);
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: var(--space-small);
+}
+
+.card-face-number {
+  font-size: var(--font-body1);
+  color: rgba(255, 255, 255, 0.95);
+  margin-bottom: var(--space-medium);
+}
+
+.card-face-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8rpx 0;
+  border-top: 1rpx solid rgba(255, 255, 255, 0.15);
+}
+
+.card-face-label {
+  font-size: var(--font-body2);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.card-face-value {
+  font-size: var(--font-body1);
+  color: #fff;
+  font-weight: 500;
+}
+
+.action-btns {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-medium);
+}
+
+/* 会员卡充值 - 绿色 */
+.recharge-btn {
+  height: var(--height-button);
+  line-height: var(--height-button);
+  background: #07c160;
+  color: #fff;
+  font-size: var(--font-button);
+  font-weight: 600;
+  text-align: center;
+  border-radius: var(--radius-medium);
+}
+
+/* 解绑会员卡 - 红色 */
+.unbind-btn {
+  height: var(--height-button);
+  line-height: var(--height-button);
+  background: transparent;
+  border: 2rpx solid #ee0a24;
+  color: #ee0a24;
+  font-size: var(--font-button);
+  font-weight: 600;
+  text-align: center;
+  border-radius: var(--radius-medium);
+}
+
+.bind-hint {
+  font-size: var(--font-body1);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-large);
+  text-align: center;
+}
+
+/* 绑定卡 - 绑定表单 */
+.bind-form-view {
+  padding-bottom: var(--space-large);
+}
+
+.form-desc {
+  font-size: var(--font-body2);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-large);
+}
+
+.form-group {
+  margin-bottom: var(--space-large);
+}
+
+.form-label {
+  display: block;
+  font-size: var(--font-body1);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: var(--space-small);
+}
+
+.form-input {
+  height: var(--height-input);
+  padding: 0 var(--space-large);
+  background: #f5f5f5;
+  border-radius: var(--radius-medium);
+  font-size: var(--font-body1);
+  color: var(--text-primary);
+}
+
+.bind-btn {
+  height: var(--height-button);
+  line-height: var(--height-button);
+  background: var(--primary);
+  color: #fff;
+  font-size: var(--font-button);
+  font-weight: 600;
+  text-align: center;
+  border-radius: var(--radius-medium);
+  margin-top: var(--space-xlarge);
+}
+
+.query-btn {
+  height: var(--height-button);
+  line-height: var(--height-button);
+  background: var(--success);
+  color: #fff;
+  font-size: var(--font-button);
+  font-weight: 600;
+  text-align: center;
+  border-radius: var(--radius-medium);
+  margin-top: var(--space-medium);
+}
+
+.bottom-padding {
+  height: var(--space-xlarge);
+}

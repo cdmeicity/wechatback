@@ -1,0 +1,119 @@
+<view class="play-page light-theme" style="padding-top: {{statusBarHeight}}px;">
+  <!-- AppBar：预留状态栏后与胶囊下沿齐平，左侧返回 + 中间影院名称 -->
+  <view class="appbar" wx:if="{{cinema}}" style="height: {{appbarHeight}}rpx;">
+    <view class="appbar-back" bindtap="onBack">
+      <text class="back-icon">‹</text>
+    </view>
+    <text class="appbar-title">{{cinema.name}}</text>
+    <view class="appbar-placeholder"></view>
+  </view>
+
+  <!-- 影片轮播：选中居中 -->
+  <view class="movie-section" wx:if="{{movies.length > 0}}">
+    <scroll-view
+      scroll-x
+      class="movie-scroll"
+      show-scrollbar="{{false}}"
+      scroll-left="{{movieScrollLeft}}"
+      scroll-with-animation="{{true}}"
+    >
+      <view
+        wx:for="{{movies}}"
+        wx:key="id"
+        id="movie-{{index}}"
+        class="movie-item {{selectedMovieIndex === index ? 'active' : ''}}"
+        data-index="{{index}}"
+        bindtap="onMovieTap"
+      >
+        <view class="movie-poster-wrap">
+          <image class="movie-poster" src="{{item.logo}}" mode="aspectFill" />
+          <view wx:if="{{selectedMovieIndex === index}}" class="movie-check">✓</view>
+        </view>
+        <text class="movie-name">{{item.name}}</text>
+        <block wx:if="{{selectedMovieIndex === index && (item.type || item.duration)}}">
+          <text class="movie-meta">{{item.type || ''}}{{item.type && item.duration ? ' · ' : ''}}{{item.duration ? item.duration + '分钟' : ''}}</text>
+        </block>
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- 日期选择：仅显示有排期的日期 -->
+  <view class="date-section" wx:if="{{dateList.length > 0}}">
+    <scroll-view scroll-x class="date-scroll" show-scrollbar="{{false}}">
+      <view
+        wx:for="{{dateList}}"
+        wx:key="str"
+        class="date-item {{selectedDateIndex === index ? 'active' : ''}}"
+        data-index="{{index}}"
+        bindtap="onDateTap"
+      >
+        <text class="date-num">{{item.displayDate}}</text>
+        <text class="date-week">{{item.isToday ? '今天' : item.weekday}}</text>
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- 场次列表（登录弹窗覆盖此区域，点击场次未登录时弹出） -->
+  <view class="showtime-list-wrap">
+  <scroll-view class="showtime-list" scroll-y enhanced show-scrollbar="{{false}}">
+    <view wx:if="{{!selectedMovie}}" class="empty-hint">
+      <text class="hint-icon">🎬</text>
+      <text class="hint-text">请选择影片</text>
+    </view>
+    <view wx:elif="{{loadingShowtimes}}" class="loading-hint">
+      <text>正在加载场次...</text>
+    </view>
+    <view wx:elif="{{showtimes.length === 0}}" class="empty-hint">
+      <text class="hint-icon">📅</text>
+      <text class="hint-text">暂无场次</text>
+    </view>
+    <block wx:else>
+    <view
+      wx:for="{{showtimes}}"
+      wx:key="id"
+      class="showtime-card {{selectedShowtime && selectedShowtime.id === item.id ? 'active' : ''}}"
+      data-index="{{index}}"
+      bindtap="onShowtimeTap"
+    >
+      <view class="showtime-left">
+        <view class="time-row">
+          <text class="time-icon">▶</text>
+          <text class="time-label">开场</text>
+          <text class="time-value">{{item.startTimeStr}}</text>
+        </view>
+        <view class="time-row">
+          <text class="time-icon">■</text>
+          <text class="time-label">散场</text>
+          <text class="time-value secondary">{{item.endTimeStr}}</text>
+        </view>
+      </view>
+      <view class="showtime-divider"></view>
+      <view class="showtime-right">
+        <view class="info-row">
+          <text class="info-icon">🎬</text>
+          <text class="hall-name">{{item.hallName}}</text>
+        </view>
+        <view class="info-row">
+          <text class="info-icon">🌐</text>
+          <text class="format">{{item.format}}{{item.language ? ' ' + item.language : ''}}</text>
+        </view>
+        <view class="info-row price-row">
+          <text class="price-label">价格</text>
+          <text class="price-value">¥{{item.priceStr}}</text>
+        </view>
+      </view>
+    </view>
+    </block>
+  </scroll-view>
+  <phone-login-modal
+    show="{{showLoginModal}}"
+    bind:close="onLoginModalClose"
+    bind:success="onLoginSuccess"
+  />
+  </view>
+
+  <!-- 底部按钮 -->
+  <view class="bottom-bar" wx:if="{{selectedShowtime}}">
+    <view class="btn-primary" bindtap="onContinue">继续</view>
+  </view>
+</view>

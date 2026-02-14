@@ -1,0 +1,345 @@
+/**
+ * 影票详情页 - 遵循 VI 规范
+ * 红色背景 #DC143C（与设计图一致），白色票卡、虚线分隔、底部波浪、条形码区
+ */
+@import '../../styles/vi.wxss';
+
+page {
+  background: #DC143C;
+  height: 100%;
+}
+
+.ticketinfo-page {
+  min-height: 100vh;
+  background: #DC143C;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* 主体 */
+.ticketinfo-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.ticketinfo-loading,
+.ticketinfo-error {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-xlarge);
+}
+
+.ticketinfo-spinner {
+  width: 64rpx;
+  height: 64rpx;
+  border: 6rpx solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: ticketinfo-spin 0.8s linear infinite;
+}
+
+@keyframes ticketinfo-spin {
+  to { transform: rotate(360deg); }
+}
+
+.ticketinfo-loading-text,
+.ticketinfo-error-text {
+  color: #fff;
+  font-size: var(--font-body1);
+  margin-top: var(--space-medium);
+}
+
+/* 单张票：scroll-view 包裹整张白色卡片（含条形码），一起滚动 */
+.ticketinfo-scroll {
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+  padding: var(--space-large);
+  box-sizing: border-box;
+}
+
+.ticketinfo-swiper {
+  flex: 1;
+  height: 0;
+  min-height: 70vh;
+}
+
+.ticketinfo-swiper-item {
+  height: 100%;
+  padding: var(--space-large);
+  box-sizing: border-box;
+}
+
+/* 白色票卡 */
+.ticketinfo-card {
+  background: #fff;
+  border-radius: 16rpx 16rpx 0 0;
+  overflow: hidden;
+  box-shadow: 0 10rpx 40rpx rgba(0,0,0,0.1);
+  padding-bottom: 40rpx;
+  position: relative;
+}
+
+/* 票卡底部留白（设计图为波浪形，可后续用图片或 canvas 实现） */
+
+/* 影片信息区 */
+.ticketinfo-card-movie {
+  display: flex;
+  padding: var(--space-large);
+  gap: var(--space-medium);
+}
+
+.ticketinfo-poster-wrap {
+  width: 160rpx;
+  height: 240rpx;
+  flex-shrink: 0;
+  border-radius: var(--radius-small);
+  overflow: hidden;
+  border: 2rpx solid var(--border);
+}
+
+.ticketinfo-poster {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.ticketinfo-poster-placeholder {
+  width: 100%;
+  height: 100%;
+  background: var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ticketinfo-poster-icon {
+  font-size: 64rpx;
+}
+
+.ticketinfo-movie-right {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xsmall);
+}
+
+.ticketinfo-movie-name {
+  font-size: 40rpx;
+  font-weight: bold;
+  color: var(--text-primary);
+  line-height: 1.3;
+}
+
+.ticketinfo-movie-meta {
+  font-size: 24rpx;
+  color: var(--text-secondary);
+}
+
+.ticketinfo-cinema-row,
+.ticketinfo-meta-row {
+  padding: 0 var(--space-large);
+  margin-bottom: var(--space-xsmall);
+}
+
+.ticketinfo-cinema-name {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: var(--text-primary);
+}
+
+.ticketinfo-meta {
+  font-size: 26rpx;
+  color: var(--text-secondary);
+}
+
+.ticketinfo-seats-row {
+  padding: 0 var(--space-large);
+  margin-bottom: var(--space-xsmall);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-small);
+}
+
+.ticketinfo-seat {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: var(--primary);
+}
+
+/* 虚线分隔（撕票线效果） */
+.ticketinfo-dashed {
+  height: 32rpx;
+  margin: var(--space-medium) var(--space-large);
+  background: repeating-linear-gradient(
+    to right,
+    var(--border) 0,
+    var(--border) 8rpx,
+    transparent 8rpx,
+    transparent 18rpx
+  );
+  background-size: 18rpx 2rpx;
+  background-position: 0 50%;
+  background-repeat: repeat-x;
+}
+
+.ticketinfo-dashed-barcode {
+  margin-top: var(--space-medium);
+}
+
+/* 购票信息 */
+.ticketinfo-booking {
+  padding: var(--space-medium) var(--space-large);
+}
+
+.ticketinfo-booking-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: var(--space-medium);
+}
+
+.ticketinfo-booking-row:last-child {
+  margin-bottom: 0;
+}
+
+.ticketinfo-booking-label {
+  font-size: 26rpx;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.ticketinfo-booking-value {
+  font-size: 26rpx;
+  font-weight: bold;
+  color: var(--text-primary);
+  text-align: right;
+  margin-left: var(--space-medium);
+  word-break: break-all;
+}
+
+.ticketinfo-booking-ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 320rpx;
+}
+
+/* 条形码区 */
+.ticketinfo-barcode-wrap {
+  padding: var(--space-medium) var(--space-large) var(--space-large);
+  text-align: center;
+}
+
+.ticketinfo-barcode-swiper-hint {
+  display: block;
+  font-size: 24rpx;
+  color: var(--text-secondary);
+  margin-bottom: var(--space-small);
+}
+
+.ticketinfo-barcode-nav {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-large);
+  margin-top: var(--space-medium);
+}
+
+.ticketinfo-barcode-btn {
+  min-width: 160rpx;
+  height: 64rpx;
+  line-height: 64rpx;
+  text-align: center;
+  font-size: 28rpx;
+  color: var(--primary);
+  border: 2rpx solid var(--primary);
+  border-radius: var(--radius-medium);
+}
+
+.ticketinfo-barcode-btn-disabled {
+  color: var(--text-secondary);
+  border-color: var(--text-secondary);
+  opacity: 0.6;
+}
+
+.ticketinfo-barcode-hint {
+  display: block;
+  font-size: 28rpx;
+  color: var(--text-primary);
+  margin-bottom: var(--space-small);
+}
+
+.ticketinfo-barcode-box {
+  padding: var(--space-medium);
+  background: #fff;
+  border-radius: var(--radius-small);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* 条形码 canvas（Code128 图形）- 保留兼容 */
+.ticketinfo-barcode-canvas {
+  width: 100%;
+  height: 200rpx;
+  display: block;
+}
+
+/* 二维码 canvas：正方形、尺寸适中、不超出边界 */
+.ticketinfo-qrcode-canvas {
+  width: 520rpx;
+  height: 520rpx;
+  max-width: 100%;
+  display: block;
+  margin: 0 auto;
+}
+
+/* 已观看：二维码区域模糊显示 */
+.ticketinfo-qrcode-blur {
+  filter: blur(8px);
+  pointer-events: none;
+}
+
+/* 有订单但暂无条形码时的提示与刷新 */
+.ticketinfo-no-barcode {
+  padding: var(--space-xlarge);
+  text-align: center;
+}
+
+.ticketinfo-no-barcode-text {
+  display: block;
+  font-size: var(--font-body1);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-medium);
+}
+
+.ticketinfo-refresh-btn {
+  height: var(--height-button);
+  line-height: var(--height-button);
+  background: var(--primary);
+  color: #fff;
+  font-size: var(--font-button);
+  font-weight: 600;
+  border-radius: var(--radius-medium);
+  text-align: center;
+}
+
+/* 底部公司名 */
+.ticketinfo-footer {
+  padding: var(--space-medium) var(--space-large);
+  padding-bottom: calc(var(--space-medium) + env(safe-area-inset-bottom));
+  text-align: center;
+  background: #DC143C;
+}
+
+.ticketinfo-footer-text {
+  font-size: 32rpx;
+  color: #fff;
+}

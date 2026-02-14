@@ -1,0 +1,37 @@
+<view class="feedback-detail-page light-theme">
+  <view wx:if="{{loading}}" class="feedback-detail-loading">
+    <text>加载中...</text>
+  </view>
+  <block wx:elif="{{item}}">
+    <scroll-view scroll-y class="feedback-detail-scroll" enhanced show-scrollbar="{{false}}">
+      <view class="feedback-detail-card">
+        <view class="feedback-detail-title">{{item.title}}</view>
+        <view class="feedback-detail-time">{{item.createdAtStr}}</view>
+        <view class="feedback-detail-content">{{item.content}}</view>
+        <view wx:if="{{item.images && item.images.length > 0}}" class="feedback-detail-images">
+          <image
+            wx:for="{{item.images}}"
+            wx:key="*this"
+            class="feedback-detail-img"
+            src="{{item}}"
+            mode="aspectFill"
+          />
+        </view>
+      </view>
+
+      <view wx:if="{{item.reply}}" class="feedback-detail-reply-card">
+        <view class="feedback-detail-reply-title">商家回复</view>
+        <view class="feedback-detail-reply-time">{{item.replyAtStr}}</view>
+        <view class="feedback-detail-reply-content">{{item.reply}}</view>
+      </view>
+      <view wx:else class="feedback-detail-no-reply">
+        <text class="feedback-detail-no-reply-text">暂无回复，请耐心等待</text>
+      </view>
+
+      <view class="feedback-detail-bottom-pad"></view>
+    </scroll-view>
+  </block>
+  <view wx:else class="feedback-detail-empty">
+    <text>反馈不存在或已删除</text>
+  </view>
+</view>

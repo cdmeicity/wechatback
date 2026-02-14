@@ -1,0 +1,339 @@
+/* 首页 - 参照 App 效果，浅色主题 + VI 规范 */
+
+page {
+  background: var(--background);
+}
+
+.page.light-theme {
+  min-height: 100vh;
+  padding-bottom: calc(120rpx + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+  background: var(--background);
+}
+
+/* 头部：影院选择左对齐，下沿与胶囊对齐 */
+.header {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding-left: var(--space-large);
+  padding-bottom: 0;
+  background: var(--background);
+}
+
+/* 头部行：高度=胶囊，底部对齐；选择器可更高，下沿与之平齐 */
+.header-row {
+  display: flex;
+  align-items: flex-end;
+  overflow: visible;
+}
+
+/* 影院下拉选择器 - 与设计图一致：圆角、极细边框、立体阴影、尺寸；高度更大，下沿与胶囊平齐 */
+.cinema-selector {
+  min-height: 88rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-small);
+  min-width: 240rpx;
+  padding: 0 24rpx;
+  background: #FFFFFF;
+  border-radius: 16rpx; /* 8px */
+  border: 1rpx solid rgba(0, 0, 0, 0.06); /* 极细浅灰描边 */
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.06); /* 柔和浮起立体感 */
+  box-sizing: border-box;
+  line-height: 1.2;
+}
+
+.cinema-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  overflow: hidden;
+  flex: 1;
+  min-width: 0;
+}
+
+.cinema-name {
+  font-size: 28rpx; /* 约 14px */
+  font-weight: 600;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 240rpx;
+}
+
+.cinema-distance {
+  font-size: 22rpx; /* 约 11px */
+  color: var(--text-secondary);
+  line-height: 1.3;
+}
+
+.dropdown-icon {
+  font-size: 18rpx;
+  color: var(--text-primary);
+  flex-shrink: 0;
+}
+
+/* 搜索区域：与胶囊下沿保持 15px 间距 */
+.search-section {
+  display: flex;
+  align-items: center;
+  gap: var(--space-medium);
+  margin-top: 30rpx; /* 15px */
+  padding: 0 var(--space-large) var(--space-large);
+}
+
+.search-input {
+  flex: 1;
+  height: var(--height-input);
+  background: #E8E8E8;
+  border-radius: 16rpx; /* 8px */
+  display: flex;
+  align-items: center;
+  padding: 0 var(--space-large);
+}
+
+.search-icon-img {
+  width: 40rpx;
+  height: 40rpx;
+  margin-right: var(--space-small);
+  flex-shrink: 0;
+}
+
+.search-placeholder {
+  color: var(--text-placeholder);
+  font-size: var(--font-body2);
+}
+
+/* 通知按钮 - 卡片风格，与影院活动一致 */
+.notify-btn {
+  width: var(--height-input);
+  height: var(--height-input);
+  background: #FFFFFF;
+  border-radius: 16rpx; /* 8px */
+  border: 1rpx solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  box-sizing: border-box;
+}
+
+.notify-icon-img {
+  width: 48rpx;
+  height: 48rpx;
+}
+
+.badge {
+  position: absolute;
+  right: var(--space-xsmall);
+  top: var(--space-xsmall);
+  min-width: 36rpx;
+  height: 36rpx;
+  line-height: 36rpx;
+  font-size: var(--font-overline);
+  color: var(--surface);
+  background: var(--error);
+  border-radius: 16rpx;
+  text-align: center;
+  padding: 0 var(--space-xsmall);
+}
+
+/* 快捷入口 - 4 卡片自适应屏幕，居中显示 */
+.category-section {
+  padding: 0 var(--space-large) var(--space-xlarge);
+}
+
+.category-grid {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-small);
+}
+
+.category-card {
+  flex: 1;
+  min-width: 0;
+  background: var(--surface);
+  border-radius: 16rpx;
+  box-sizing: border-box;
+  box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.06);
+}
+
+.category-card-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 180rpx;
+  padding: var(--space-medium) var(--space-small);
+}
+
+.category-icon-wrap {
+  width: 72rpx;
+  height: 72rpx;
+  margin-bottom: var(--space-small);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.category-icon-img {
+  width: 72rpx;
+  height: 72rpx;
+}
+
+.category-name {
+  font-size: 24rpx;
+  color: var(--text-primary);
+  font-weight: 600;
+  text-align: center;
+}
+
+/* 电影区块 */
+.movie-section {
+  padding: 0 var(--space-large) var(--space-xxlarge);
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-large);
+}
+
+.section-title {
+  font-size: var(--font-h5);
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.section-count {
+  font-size: var(--font-body2);
+  color: var(--text-secondary);
+}
+
+/* 电影卡片 */
+.movie-scroll {
+  white-space: nowrap;
+  height: 480rpx;
+}
+
+.movie-card {
+  display: inline-block;
+  width: 260rpx;
+  margin-right: var(--space-large);
+  vertical-align: top;
+}
+
+.poster-wrap {
+  width: 260rpx;
+  height: 360rpx;
+  border-radius: 16rpx; /* 8px */
+  overflow: hidden;
+  background: #E0E0E0;
+  box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.08);
+}
+
+.movie-card .poster {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.movie-name {
+  display: block;
+  font-size: var(--font-body2);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-top: 32rpx; /* 16px，海报与下方文字间距约 8 单位 */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.movie-meta {
+  display: block;
+  font-size: var(--font-caption);
+  color: var(--text-secondary);
+  margin-top: var(--space-xsmall);
+}
+
+.loading-wrap, .empty {
+  height: 480rpx;
+  line-height: 480rpx;
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: var(--font-body2);
+}
+
+/* 底部导航栏 */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 120rpx;
+  padding-bottom: env(safe-area-inset-bottom);
+  background: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  border-top: 1rpx solid var(--border);
+  box-shadow: 0 -2rpx 12rpx rgba(0,0,0,0.06);
+}
+
+.nav-item {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nav-item-inner {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  padding: 12rpx 20rpx;
+  border-radius: 16rpx;
+}
+
+.nav-item.active .nav-item-inner {
+  background: var(--primary);
+}
+
+.nav-icon {
+  width: 44rpx;
+  height: 44rpx;
+}
+
+.nav-icon-user {
+  width: 52rpx;
+  height: 52rpx;
+}
+
+.nav-label {
+  font-size: 24rpx;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.nav-item.active .nav-label {
+  color: #FFFFFF;
+}
+
+.nav-label.imax-text {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.nav-item.active .nav-label.imax-text {
+  color: #FFFFFF;
+}

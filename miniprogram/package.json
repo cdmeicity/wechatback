@@ -1,0 +1,8 @@
+{
+  "name": "meicheng-miniprogram",
+  "version": "1.0.0",
+  "description": "美承影院小程序",
+  "dependencies": {
+    "weapp-qrcode-canvas-2d": "^1.1.6"
+  }
+}

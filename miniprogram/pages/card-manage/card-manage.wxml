@@ -1,0 +1,185 @@
+<view class="page light-theme">
+  <view class="tabs">
+    <view
+      class="tab {{activeTab === 0 ? 'active' : ''}}"
+      data-index="0"
+      bindtap="onTabTap"
+    >新办会员卡</view>
+    <view
+      class="tab {{activeTab === 1 ? 'active' : ''}}"
+      data-index="1"
+      bindtap="onTabTap"
+    >绑定会员卡</view>
+  </view>
+
+  <scroll-view class="content-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+    <!-- 新办会员卡 Tab -->
+    <view wx:if="{{activeTab === 0}}" class="tab-content">
+      <view class="section-title">选择会员卡类型</view>
+      <view wx:if="{{loadingCardLevels}}" class="loading-wrap">
+        <text>加载中...</text>
+      </view>
+      <view wx:elif="{{cardLevels.length === 0}}" class="empty-wrap">
+        <text>暂无会员卡类型</text>
+      </view>
+      <view wx:else class="card-carousel-wrap">
+        <swiper
+          class="card-carousel"
+          current="{{currentCardIndex}}"
+          circular="{{false}}"
+          previous-margin="80rpx"
+          next-margin="80rpx"
+          bindchange="onSwiperChange"
+        >
+          <block wx:for="{{cardLevels}}" wx:key="levelId">
+            <swiper-item>
+              <view
+                class="card-carousel-item {{selectedCard && selectedCard.levelId === item.levelId ? 'selected' : ''}}"
+                data-index="{{index}}"
+                bindtap="onSelectCard"
+              >
+                <view class="card-carousel-name">{{item.levelName || item.level_name || '会员卡'}}</view>
+                <view class="card-carousel-price">¥{{item.price || 0}}</view>
+                <view wx:if="{{item.originalPrice || item.original_price}}" class="card-carousel-original">¥{{item.originalPrice || item.original_price}}</view>
+                <view wx:if="{{selectedCard && selectedCard.levelId === item.levelId}}" class="card-carousel-check">✓</view>
+              </view>
+            </swiper-item>
+          </block>
+        </swiper>
+      </view>
+      <view wx:if="{{selectedCard}}" class="benefits-section">
+        <view class="benefits-title-row">
+          <text class="benefits-title">{{selectedCard.levelName || selectedCard.level_name || '会员卡'}}权益</text>
+          <text class="benefits-tag">{{selectedCard.cardType || selectedCard.card_type || selectedCard.type || '折扣卡'}}</text>
+        </view>
+        <view class="benefits-list">
+          <view class="benefit-item">
+            <text class="benefit-icon">🎁</text>
+            <text class="benefit-text">类型: {{selectedCard.cardType || selectedCard.card_type || selectedCard.type || '折扣卡'}}</text>
+          </view>
+          <view class="benefit-item">
+            <text class="benefit-icon">🎫</text>
+            <text class="benefit-text">票务折扣: {{selectedCard.ticketDiscount != null ? selectedCard.ticketDiscount : (selectedCard.ticket_discount != null ? selectedCard.ticket_discount : 0)}}%</text>
+          </view>
+          <view class="benefit-item">
+            <text class="benefit-icon">⭐</text>
+            <text class="benefit-text">每日购票限额: {{selectedCard.dailyTicketLimit != null ? selectedCard.dailyTicketLimit : (selectedCard.daily_ticket_limit != null ? selectedCard.daily_ticket_limit : '0')}}张</text>
+          </view>
+          <view class="benefit-item">
+            <text class="benefit-icon">🎬</text>
+            <text class="benefit-text">单次购票限额: {{selectedCard.singleTicketLimit != null ? selectedCard.singleTicketLimit : (selectedCard.single_ticket_limit != null ? selectedCard.single_ticket_limit : '0')}}张</text>
+          </view>
+        </view>
+      </view>
+      <view wx:if="{{selectedCard}}" class="apply-section">
+        <view class="agree-row" bindtap="onAgreeChange">
+          <view class="agree-checkbox {{agreedToTerms ? 'checked' : ''}}">
+            <text wx:if="{{agreedToTerms}}">✓</text>
+          </view>
+          <text class="agree-text">我已阅读并同意</text>
+          <text class="agree-link">《会员卡办理及充值协议》</text>
+        </view>
+        <view
+          class="apply-btn {{!agreedToTerms ? 'disabled' : ''}}"
+          bindtap="onApplyCard"
+        >立即办理</view>
+      </view>
+    </view>
+
+    <!-- 新办卡：办理表单弹窗（面板用 catchtap 阻止冒泡，避免点击输入框时触达遮罩关闭） -->
+    <view wx:if="{{showApplyForm}}" class="apply-form-mask" catchtap="onApplyFormCancel">
+      <view class="apply-form-panel" catchtap="preventMaskTap" catchtouchmove="preventMaskTap">
+        <view class="apply-form-title">办理会员卡</view>
+        <view class="apply-form-desc" wx:if="{{selectedCard}}">{{selectedCard.levelName || selectedCard.level_name || '会员卡'}}</view>
+        <view class="form-group">
+          <text class="form-label">设置密码</text>
+          <input class="form-input" type="number" password placeholder="6-8位数字" maxlength="8" value="{{applyPassword}}" bindinput="onApplyPasswordInput" />
+        </view>
+        <view class="form-group">
+          <text class="form-label">确认密码</text>
+          <input class="form-input" type="number" password placeholder="再次输入密码" maxlength="8" value="{{applyPasswordConfirm}}" bindinput="onApplyPasswordConfirmInput" />
+        </view>
+        <view class="form-group">
+          <text class="form-label">姓名</text>
+          <input class="form-input" placeholder="请输入姓名" value="{{applyName}}" bindinput="onApplyNameInput" />
+        </view>
+        <view class="form-group">
+          <text class="form-label">证件类型</text>
+          <picker mode="selector" range="{{['身份证','军官证','护照']}}" range-key="" value="{{applyIdcardType - 1}}" bindchange="onApplyIdcardTypeChange">
+            <view class="form-picker">{{applyIdcardType === 2 ? '军官证' : applyIdcardType === 3 ? '护照' : '身份证'}}</view>
+          </picker>
+        </view>
+        <view class="form-group">
+          <text class="form-label">证件号码</text>
+          <input class="form-input" placeholder="{{applyIdcardType === 1 ? '18位身份证号' : '请输入证件号码'}}" value="{{applyIdcard}}" bindinput="onApplyIdcardInput" />
+        </view>
+        <view class="apply-form-btns">
+          <view class="apply-form-btn cancel" bindtap="onApplyFormCancel">取消</view>
+          <view class="apply-form-btn confirm" bindtap="onApplyFormConfirm">确认办理</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 绑定会员卡 Tab：以 app.cardinfo 为条件，有则显示卡详情，无则显示绑定表单 -->
+    <view wx:if="{{activeTab === 1}}" class="tab-content">
+      <block wx:if="{{cardInfo && cardInfo.cardNumber}}">
+        <view class="bound-card-view">
+          <view class="section-title">我的会员卡</view>
+          <view class="card-face">
+            <view class="card-face-name">{{cardInfo.cardName || '会员卡'}}</view>
+            <view class="card-face-number">卡号：{{cardInfo.cardNumber}}</view>
+            <view class="card-face-row">
+              <text class="card-face-label">余额</text>
+              <text class="card-face-value">{{cardInfo.balance != null ? '¥' + cardInfo.balance : '--'}}</text>
+            </view>
+            <view class="card-face-row">
+              <text class="card-face-label">有效期</text>
+              <text class="card-face-value">{{cardInfo.validity || '--'}}</text>
+            </view>
+            <view class="card-face-row">
+              <text class="card-face-label">积分</text>
+              <text class="card-face-value">{{cardInfo.points != null ? cardInfo.points : '--'}}</text>
+            </view>
+            <view wx:if="{{cardInfo.discount != null && cardInfo.discount !== ''}}" class="card-face-row">
+              <text class="card-face-label">折扣</text>
+              <text class="card-face-value">{{cardInfo.discountDisplay || cardInfo.discount + '%'}}</text>
+            </view>
+          </view>
+          <view class="action-btns">
+            <view class="recharge-btn" bindtap="onRecharge">会员卡充值</view>
+            <view class="unbind-btn" bindtap="onUnbind">解绑会员卡</view>
+          </view>
+        </view>
+      </block>
+      <block wx:else>
+      <view class="bind-form-view">
+        <view class="bind-hint">请绑定您的会员卡</view>
+        <view class="form-group">
+          <text class="form-label">会员卡号</text>
+          <input
+            class="form-input"
+            type="number"
+            placeholder="请输入会员卡号"
+            value="{{cardNumber}}"
+            bindinput="onCardNumberInput"
+          />
+        </view>
+        <view class="form-group">
+          <text class="form-label">卡密码</text>
+          <input
+            class="form-input"
+            type="number"
+            password
+            placeholder="请输入卡密码"
+            value="{{cardPassword}}"
+            bindinput="onCardPasswordInput"
+          />
+        </view>
+        <view class="bind-btn" bindtap="onBindCard">绑定会员卡</view>
+        <view class="query-btn" bindtap="onQueryCardByPhone">查询会员卡卡号</view>
+      </view>
+      </block>
+    </view>
+    <view class="bottom-padding"></view>
+  </scroll-view>
+</view>

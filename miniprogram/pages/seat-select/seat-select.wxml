@@ -1,0 +1,119 @@
+<view class="page seat-select-page">
+  <view class="custom-nav" style="padding-top: {{statusBarHeight}}px;">
+    <view class="nav-inner">
+      <view class="nav-back" bindtap="onNavBack">
+        <text class="nav-back-icon">‹</text>
+      </view>
+      <view class="nav-title">
+        <text class="nav-movie-name">{{movieName || '选座'}}</text>
+        <text wx:if="{{movieLanguage}}" class="nav-movie-language"> {{movieLanguage}}</text>
+      </view>
+      <view class="nav-placeholder"></view>
+    </view>
+  </view>
+  <scroll-view scroll-y class="content" style="padding-top: {{contentTop}}px;" enhanced show-scrollbar="{{false}}">
+    <!-- 屏幕指示器 -->
+    <view class="screen-section">
+      <view class="screen-curve"></view>
+      <text class="hall-name">{{hallName}}</text>
+    </view>
+
+    <!-- 座位网格 -->
+    <view wx:if="{{loadingSeats}}" class="loading-wrap">
+      <view class="loading-text">加载座位中...</view>
+    </view>
+    <view wx:else class="seat-section">
+      <scroll-view scroll-x class="seat-scroll" enhanced scroll-left="{{seatScrollLeft}}">
+        <view class="seat-scroll-inner">
+          <view class="seat-grid" id="seatGrid">
+            <view wx:for="{{seatGrid}}" wx:key="x" class="seat-row">
+              <view class="row-label-cell">{{item.rowLabel}}</view>
+              <view class="row-seats">
+                <view
+                  wx:for="{{item.seats}}"
+                  wx:for-item="seat"
+                  wx:key="index"
+                  class="seat {{!seat ? 'empty' : ''}} {{seat && seat.type === 'road' ? 'road' : ''}} {{seat && seat.type !== 'road' && (seat.status === 'selled' || seat.status === 'booked' || seat.status === 'locked') ? 'sold' : ''}} {{seat && seat.type !== 'road' && seat.isSelected ? 'selected' : ''}} {{seat && seat.type !== 'road' && seat.status === 'ok' ? 'available' : ''}}"
+                  data-seat="{{seat}}"
+                  bindtap="toggleSeat"
+                ></view>
+              </view>
+            </view>
+          </view>
+        </view>
+      </scroll-view>
+    </view>
+
+    <!-- 图例 -->
+    <view class="legend">
+      <view class="legend-item">
+        <view class="dot selected"></view>
+        <text>已选</text>
+      </view>
+      <view class="legend-item">
+        <view class="dot available"></view>
+        <text>可选</text>
+      </view>
+      <view class="legend-item">
+        <view class="dot sold"></view>
+        <text>已售</text>
+      </view>
+    </view>
+
+    <!-- 已选座位列表 -->
+    <view wx:if="{{selectedNames.length > 0}}" class="selected-section">
+      <view class="selected-label">已选座位</view>
+      <view class="selected-tags">
+        <text wx:for="{{selectedNames}}" wx:key="*this" class="seat-tag">{{item}}</text>
+      </view>
+    </view>
+
+    <view class="bottom-spacer"></view>
+  </scroll-view>
+
+  <!-- M6.5 会员卡支付密码弹窗 -->
+  <view wx:if="{{showMemberCardPasswordModal}}" class="member-card-password-mask" catchtap="onMemberCardPasswordCancel" catchtouchmove="preventTouchMove">
+    <view class="member-card-password-box" catchtap="preventTouchMove" catchtouchmove="preventTouchMove">
+      <view class="member-card-password-title">会员卡密码验证</view>
+      <view class="member-card-password-desc">请输入会员卡密码完成支付</view>
+      <input
+        class="member-card-password-input"
+        type="number"
+        password
+        placeholder="请输入会员卡密码"
+        value="{{_memberCardPasswordInput}}"
+        bindinput="onMemberCardPasswordInput"
+      />
+      <view class="member-card-password-btns">
+        <view class="member-card-password-btn cancel" bindtap="onMemberCardPasswordCancel">取消</view>
+        <view class="member-card-password-btn confirm" bindtap="onMemberCardPasswordConfirm">确认支付</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- N7 等待系统出票弹窗 -->
+  <view wx:if="{{showProcessingTicketModal}}" class="n7-processing-mask" catchtouchmove="preventTouchMove">
+    <view class="n7-processing-box">
+      <view class="n7-processing-spinner"></view>
+      <text class="n7-processing-title">等待系统出票</text>
+      <text class="n7-processing-desc">请稍候...</text>
+      <view class="n7-processing-btn" bindtap="onN7BackToHome">返回首页</view>
+    </view>
+  </view>
+
+  <!-- 底部栏 -->
+  <view class="bottom-bar">
+    <view class="total-wrap">
+      <text class="total-label">总价</text>
+      <text class="total-price">¥{{totalPrice}}</text>
+    </view>
+    <view class="bottom-bar-spacer"></view>
+    <button
+      class="btn-confirm {{selectedIds.length === 0 ? 'disabled' : ''}}"
+      disabled="{{selectedIds.length === 0}}"
+      bindtap="onConfirm"
+    >
+      确认选座
+    </button>
+  </view>
+</view>

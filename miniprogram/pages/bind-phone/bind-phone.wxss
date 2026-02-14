@@ -1,0 +1,78 @@
+.bind-page {
+  padding: 60rpx 48rpx;
+  position: relative;
+}
+.bind-close {
+  position: absolute;
+  top: 24rpx;
+  right: 24rpx;
+  width: 64rpx;
+  height: 64rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+}
+.bind-close-icon {
+  font-size: 48rpx;
+  font-weight: 300;
+  color: #999;
+  line-height: 1;
+}
+.header {
+  margin-bottom: 60rpx;
+}
+.title {
+  display: block;
+  font-size: 40rpx;
+  font-weight: 600;
+  color: #333;
+}
+.desc {
+  display: block;
+  font-size: 28rpx;
+  color: #999;
+  margin-top: 16rpx;
+}
+.form .input-row {
+  margin-bottom: 32rpx;
+}
+.input {
+  height: 88rpx;
+  padding: 0 24rpx;
+  background: #f5f5f5;
+  border-radius: 12rpx;
+  font-size: 30rpx;
+}
+.code-row {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+}
+.code-input {
+  flex: 1;
+}
+.btn-send {
+  width: 200rpx;
+  height: 88rpx;
+  line-height: 88rpx;
+  padding: 0;
+  font-size: 28rpx;
+  color: #FE4A49;
+  background: #fff;
+  border: 2rpx solid #FE4A49;
+  border-radius: 12rpx;
+}
+.btn-send[disabled] {
+  color: #999;
+  border-color: #ccc;
+}
+.btn-bind {
+  margin-top: 48rpx;
+  height: 88rpx;
+  line-height: 88rpx;
+  background: #FE4A49;
+  color: #fff;
+  font-size: 32rpx;
+  border-radius: 12rpx;
+}

@@ -1,3 +1,46 @@
-<view class="container">
-  <text>通知列表</text>
+<view class="notice-page light-theme">
+  <!-- 标签切换 -->
+  <view class="notice-tabs">
+    <view
+      wx:for="{{tabs}}"
+      wx:key="key"
+      class="notice-tab {{activeTab === item.key ? 'active' : ''}}"
+      data-key="{{item.key}}"
+      bindtap="onTabChange"
+    >
+      <text class="notice-tab-text">{{item.label}}</text>
+    </view>
+  </view>
+
+  <scroll-view scroll-y class="notice-scroll" enhanced show-scrollbar="{{false}}">
+    <view wx:if="{{loading}}" class="notice-loading">
+      <text>加载中...</text>
+    </view>
+    <view wx:elif="{{empty}}" class="notice-empty">
+      <text class="notice-empty-icon">📬</text>
+      <text class="notice-empty-text">暂无{{activeTab === 'event' ? '活动' : '系统'}}通知</text>
+      <text class="notice-empty-hint">敬请期待</text>
+    </view>
+    <view wx:else class="notice-list">
+      <view
+        wx:for="{{list}}"
+        wx:key="id"
+        class="notice-article"
+        data-id="{{item.id}}"
+        bindtap="onItemTap"
+      >
+        <view class="notice-article-inner">
+          <view class="notice-article-body">
+            <text class="notice-article-content">{{item.contentBrief || item.content}}</text>
+            <view class="notice-article-meta">
+              <text class="notice-article-time">{{item.createdAtStr}}</text>
+              <view wx:if="{{!item.isRead}}" class="notice-article-dot"></view>
+            </view>
+          </view>
+          <text class="notice-article-arrow">›</text>
+        </view>
+      </view>
+    </view>
+    <view class="notice-bottom-pad"></view>
+  </scroll-view>
 </view>

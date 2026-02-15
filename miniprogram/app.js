@@ -27,9 +27,15 @@ App({
     saopayNotifyUrl: 'https://saopay.meicity.net/api/notify/payment'
   },
 
-  onLaunch() {
-    console.log('[App] onLaunch 启动流程');
-    this._runSessionRestore();
+  onLaunch(options) {
+    console.log('[App] onLaunch 启动流程', options ? { scene: options.scene, path: options.path } : '');
+    try {
+      this._runSessionRestore();
+    } catch (err) {
+      const msg = (err && err.message) || String(err);
+      const detail = err && typeof err === 'object' ? JSON.stringify(err) : '';
+      console.error('[App] onLaunch 异常', msg, detail || err);
+    }
   },
 
   onShow() {
@@ -139,7 +145,8 @@ App({
         LOG('④ 已通知首页刷新 cardinfo');
       }
     } catch (err) {
-      console.warn('[SessionRestore] 异常', err);
+      const msg = (err && err.message) || String(err);
+      console.warn('[SessionRestore] 异常', msg, err && err.stack ? err.stack : '');
       this.globalData.supabaseUser = null;
       this.globalData.userinfo = null;
       this.globalData.cardinfo = null;
@@ -147,3 +154,4 @@ App({
     }
   }
 });
+

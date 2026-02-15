@@ -14,6 +14,7 @@
     "pages/card-manage/card-manage",
     "pages/movie-search/movie-search",
     "pages/notification/notification",
+    "pages/notification-detail/notification-detail",
     "pages/food/food",
     "pages/imax/imax",
     "pages/order-list/order-list",

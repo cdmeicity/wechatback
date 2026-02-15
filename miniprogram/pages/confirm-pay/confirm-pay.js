@@ -9,6 +9,7 @@ const dateHelper = require('../../utils/dateHelper.js');
 const md5 = require('../../utils/md5.js');
 const saopayRequest = require('../../utils/saopayRequest.js');
 const auth = require('../../utils/auth.js');
+const couponApi = require('../../utils/couponApi.js');
 
 const PAY_STATUS_POLL_INTERVAL_MS = 1500;
 const PAY_STATUS_POLL_TIMEOUT_MS = 15000;
@@ -45,15 +46,24 @@ Page({
     orderData: null,
     cardInfo: null,
     selectedMethod: 'wechat',
-    selectedCoupon: null,
+    selectedCouponIds: [],     // 当前选中的券 id 列表，用于券支付（可多选）
     availableCoupons: [],
     boundCouponList: [],       // 已绑定的券列表（展示用）
+    payRemain: '0.00',         // 券支付时「还需要支付」金额，来自 check_coupon.balance
+    savedMoney: '0.00',        // 券支付时「已节省」金额，来自 check_coupon.savedMoney
+    couponCheckResult: null,   // check_coupon 返回结果，下单时需与 coupons + cash 一致
+    couponLackedTip: '',       // lackedEcode 非空时的提示文案
+    couponCountTip: '',        // 券数量与购票数量不符时的提示（多/少）
+    couponCheckLoading: false,
     showPasswordModal: false,
     _passwordInput: '',
     _memberCardPayCtx: null,
     showCouponModal: false,
     _couponCodeInput: '',
-    _couponSubmitting: false
+    _couponSubmitting: false,
+    showCouponDetailModal: false,
+    couponDetailData: null,
+    _couponDetailCode: ''
   },
 
   onLoad(options) {
@@ -157,7 +167,8 @@ Page({
           couponCode: row.coupon_code || '',
           couponCodeMasked: maskCouponCode(row.coupon_code),
           validToStr: dateHelper.formatBeijingTime(row.valid_to, 'YYYY-MM-DD HH:mm'),
-          status: row.status || 'available'
+          status: row.status || 'available',
+          isSelected: false
         }));
         self.setData({ boundCouponList: list, availableCoupons: list });
       })
@@ -168,7 +179,142 @@ Page({
 
   onSelectPayment(e) {
     const method = e.currentTarget.dataset.method;
-    this.setData({ selectedMethod: method });
+    const orderId = this.data.orderId;
+    this.setData({ selectedMethod: method }, () => {
+      if (method === 'coupon' && orderId) {
+        const newOutTradeNo = `mcyy-wechat-coupon-${orderId}`;
+        supabase.updateOrder(orderId, {
+          paytype: 'couponpay',
+          out_trade_no: newOutTradeNo
+        }).then(() => {
+          const orderData = Object.assign({}, this.data.orderData || {}, { out_trade_no: newOutTradeNo });
+          this.setData({ orderData, outTradeNo: newOutTradeNo });
+        }).catch((err) => {
+          console.warn('[confirm-pay] 更新订单 paytype/out_trade_no 失败', err);
+        });
+        this._applyCouponPayDisplay();
+      }
+    });
+  },
+
+  /** 券支付时：无选券则显示总计为待支付；有选券则调 check_coupon 更新 payRemain/savedMoney（不再与 order.num 数量校验）
+   * @param {string[]} [overrideIds] - 可选，覆盖 selectedCouponIds（Android setData 回调时序用）
+   * @param {Array} [overrideBoundList] - 可选，覆盖 boundCouponList
+   */
+  _applyCouponPayDisplay(overrideIds, overrideBoundList) {
+    const ids = overrideIds != null ? overrideIds : (this.data.selectedCouponIds || []);
+    const grandTotal = this._getGrandTotal();
+    if (ids.length === 0) {
+      this.setData({
+        payRemain: grandTotal,
+        savedMoney: '0.00',
+        couponCheckResult: null,
+        couponLackedTip: '',
+        couponCountTip: ''
+      });
+      return;
+    }
+    this._fetchCheckCoupon(overrideIds, overrideBoundList);
+  },
+
+  /** 从订单数据取 cid、play_id、price、seat_num（供 check_coupon） */
+  _getOrderParamsForCoupon() {
+    const order = this.data.orderData || {};
+    const cid = (order.cinema_id || order.cinemaId || order.cinema_num || '').toString().trim();
+    const playId = (order.play_id || order.cine_play_id || order.playId || '').toString().trim();
+    const num = Number(order.num) || 0;
+    const total = parseFloat(order.total) || 0;
+    const price = num > 0 ? (total / num).toFixed(2) : '0';
+    const seatNum = String(num);
+    return { cid, play_id: playId, price, seat_num: seatNum };
+  },
+
+  /** 调用 check_coupon，用当前订单 + 已选券试算，更新 payRemain、savedMoney、couponLackedTip（不再与 order.num 数量校验）
+   * @param {string[]} [overrideIds] - 可选
+   * @param {Array} [overrideBoundList] - 可选
+   */
+  _fetchCheckCoupon(overrideIds, overrideBoundList) {
+    const { orderData } = this.data;
+    const ids = overrideIds != null ? overrideIds : (this.data.selectedCouponIds || []);
+    const boundCouponList = overrideBoundList != null ? overrideBoundList : (this.data.boundCouponList || []);
+    if (!orderData || ids.length === 0) {
+      this.setData({ payRemain: this._getGrandTotal(), savedMoney: '0.00', couponCheckResult: null, couponLackedTip: '', couponCountTip: '', couponCheckLoading: false });
+      return;
+    }
+    const codes = ids.map((id) => {
+      const c = (boundCouponList || []).find((x) => String(x.id) === String(id));
+      return c ? (c.couponCode || '').trim() : '';
+    }).filter(Boolean);
+    if (codes.length === 0) {
+      this.setData({ payRemain: this._getGrandTotal(), savedMoney: '0.00', couponCheckResult: null, couponLackedTip: '', couponCountTip: '', couponCheckLoading: false });
+      return;
+    }
+    const { cid, play_id, price, seat_num } = this._getOrderParamsForCoupon();
+    if (!cid || !play_id) {
+      this.setData({ couponCheckLoading: false, couponLackedTip: '订单缺少影院或场次信息' });
+      return;
+    }
+    this.setData({ couponCheckLoading: true, couponLackedTip: '' });
+    const self = this;
+    couponApi.checkCoupon({
+      cid,
+      play_id,
+      price,
+      seat_num,
+      coupons: codes.join(',')
+    }).then((data) => {
+      const balance = (data.balance != null ? Number(data.balance) : 0);
+      const saved = (data.savedMoney != null ? Number(data.savedMoney) : 0);
+      const lacked = (data.lackedEcode && (Array.isArray(data.lackedEcode) ? data.lackedEcode.length : 1)) ? (data.lackedEcode.join ? data.lackedEcode.join('、') : '当前券不足或规则不满足') : '';
+      self.setData({
+        payRemain: balance.toFixed(2),
+        savedMoney: saved.toFixed(2),
+        couponCheckResult: data,
+        couponLackedTip: lacked,
+        couponCountTip: '',
+        couponCheckLoading: false
+      });
+    }).catch((err) => {
+      console.warn('[confirm-pay] check_coupon 失败', err);
+      self.setData({
+        payRemain: self._getGrandTotal(),
+        savedMoney: '0.00',
+        couponCheckResult: null,
+        couponLackedTip: (err && err.message) || '试算失败，请重试',
+        couponCountTip: '',
+        couponCheckLoading: false
+      });
+    });
+  },
+
+  /** 获取订单购票数量（券数量规则：1 张票 = 1 张券） */
+  _getOrderNum() {
+    const order = this.data.orderData || {};
+    return Math.max(0, Math.floor(Number(order.num) || 0));
+  },
+
+  /** 点击券卡片或选择框：多选/取消该券（不再与 order.num 数量限制） */
+  onSelectCouponCard(e) {
+    const id = String(e.currentTarget.dataset.couponId || '');
+    if (!id) return;
+    const current = this.data.selectedCouponIds || [];
+    const has = current.some((x) => String(x) === id);
+    const next = has ? current.filter((x) => String(x) !== id) : current.concat([id]);
+    const list = (this.data.boundCouponList || []).map((c) =>
+      Object.assign({}, c, { isSelected: next.indexOf(String(c.id)) >= 0 })
+    );
+    this.setData({ selectedCouponIds: next, boundCouponList: list }, () => {
+      if (this.data.selectedMethod === 'coupon') {
+        // Android 上 setData 回调可能早于数据完全同步，用 nextTick 确保 _applyCouponPayDisplay 读到最新数据
+        const ids = next;
+        const boundList = list;
+        if (typeof wx.nextTick === 'function') {
+          wx.nextTick(() => { this._applyCouponPayDisplay(ids, boundList); });
+        } else {
+          setTimeout(() => { this._applyCouponPayDisplay(ids, boundList); }, 0);
+        }
+      }
+    });
   },
 
   /** 点击「添加优惠券」：弹出输入券码对话框 */
@@ -186,7 +332,15 @@ Page({
     this.setData({ showCouponModal: false, _couponCodeInput: '' });
   },
 
-  /** 弹窗内确认：先二次确认再绑定 */
+  /** 仅点击蒙层（非弹窗内容）时关闭，避免点输入框时关闭且不拦截输入 */
+  onCouponModalMaskTap(e) {
+    if (!e || !e.target || !e.currentTarget) return;
+    const tid = (e.target && e.target.id) || '';
+    const cid = (e.currentTarget && e.currentTarget.id) || '';
+    if (tid === cid && cid === 'couponModalMask') this.onCouponModalCancel();
+  },
+
+  /** 弹窗内确认：先调券详情接口，弹框展示券详情，取消仅关闭提示框，确定则写入 coupon_instance */
   onCouponModalConfirm() {
     const code = String(this.data._couponCodeInput || '').trim();
     if (!code) {
@@ -194,33 +348,79 @@ Page({
       return;
     }
     const self = this;
-    wx.showModal({
-      title: '确认绑定',
-      content: '确定要绑定券码「' + code + '」吗？',
-      confirmText: '确定',
-      cancelText: '取消',
-      success(res) {
-        if (!res.confirm) return;
-        const userId = self._getUserId();
-        if (!userId) {
-          wx.showToast({ title: '请先登录', icon: 'none' });
-          self.setData({ showCouponModal: false, _couponCodeInput: '' });
-          return;
+    const order = this.data.orderData || {};
+    const cid = (order.cinema_id || order.cinemaId || order.cinema_num || '').toString().trim();
+    if (!cid) {
+      wx.showToast({ title: '当前无影院信息，无法校验券', icon: 'none' });
+      return;
+    }
+    self.setData({ _couponSubmitting: true });
+    couponApi.getCouponDetail(cid, code)
+      .then((detail) => {
+        const avail = detail.couponAvailable ?? detail.coupon_available;
+        const availNum = avail != null ? Number(avail) : null;
+        const reason = detail.unavailabilityReason ?? detail.unavailability_reason ?? 0;
+        const reasonText = (couponApi.getUnavailabilityReasonText || (() => '不可用'))(reason);
+        const normalized = Object.assign({}, detail, { couponAvailable: availNum, unavailabilityReasonText: reasonText });
+        self.setData({
+          _couponSubmitting: false,
+          showCouponDetailModal: true,
+          couponDetailData: normalized,
+          _couponDetailCode: code
+        });
+      })
+      .catch((err) => {
+        self.setData({
+          _couponSubmitting: false,
+          showCouponDetailModal: true,
+          couponDetailData: { error: (err && err.message) || '券详情查询失败' },
+          _couponDetailCode: code
+        });
+      });
+  },
+
+  /** 券详情弹框：取消 → 仅关闭详情框 */
+  onCouponDetailModalCancel() {
+    this.setData({ showCouponDetailModal: false, couponDetailData: null, _couponDetailCode: '' });
+  },
+
+  /** 券详情弹框：确定 → 仅 couponAvailable=1 时才能添加/绑定，否则提示券状态不正确 */
+  onCouponDetailModalConfirm() {
+    const { couponDetailData, _couponDetailCode } = this.data;
+    const self = this;
+    this.setData({ showCouponDetailModal: false, couponDetailData: null, _couponDetailCode: '' });
+    if (!couponDetailData || couponDetailData.error) return;
+    const avail = couponDetailData.couponAvailable ?? couponDetailData.coupon_available;
+    if (Number(avail) !== 1) {
+      wx.showToast({ title: '券状态不正确，不能绑定', icon: 'none' });
+      return;
+    }
+    const code = String(_couponDetailCode || '').trim();
+    if (!code) return;
+    const userId = this._getUserId();
+    const phone = this._getUserPhone();
+    supabase.insertCouponFromDetail(couponDetailData, code, userId || undefined, phone || undefined)
+      .then(() => {
+        wx.showToast({ title: '添加成功', icon: 'success' });
+        self.setData({ showCouponModal: false, _couponCodeInput: '' });
+        self._loadCoupons();
+      })
+      .catch((err) => {
+        const msg = (err && err.message) || '';
+        if (msg.indexOf('duplicate') !== -1 || msg.indexOf('唯一') !== -1 || msg.indexOf('already exists') !== -1) {
+          if (userId) {
+            supabase.bindCoupon(userId, code).then(() => {
+              wx.showToast({ title: '绑定成功', icon: 'success' });
+              self.setData({ showCouponModal: false, _couponCodeInput: '' });
+              self._loadCoupons();
+            }).catch((e2) => {
+              wx.showToast({ title: (e2 && e2.message) || '绑定失败', icon: 'none' });
+            });
+            return;
+          }
         }
-        self.setData({ _couponSubmitting: true });
-        supabase
-          .bindCoupon(userId, code)
-          .then(() => {
-            wx.showToast({ title: '绑定成功', icon: 'success' });
-            self.setData({ showCouponModal: false, _couponCodeInput: '', _couponSubmitting: false });
-            self._loadCoupons();
-          })
-          .catch((err) => {
-            self.setData({ _couponSubmitting: false });
-            wx.showToast({ title: (err && err.message) || '绑定失败', icon: 'none' });
-          });
-      }
-    });
+        wx.showToast({ title: msg || '写入失败', icon: 'none' });
+      });
   },
 
   /** 兼容旧名 */
@@ -236,7 +436,7 @@ Page({
   },
 
   onPay() {
-    const { selectedMethod, orderData, outTradeNo } = this.data;
+    const { selectedMethod, orderData, outTradeNo, selectedCouponIds, boundCouponList, couponCheckResult, couponLackedTip } = this.data;
     const grandTotal = this._getGrandTotal();
     const totalInCents = Math.round(parseFloat(grandTotal) * 100);
 
@@ -249,7 +449,76 @@ Page({
     } else if (selectedMethod === 'memberCard') {
       this._processMemberCardPay(orderData);
     } else if (selectedMethod === 'coupon') {
-      wx.showToast({ title: '券支付功能正在开发中，敬请期待', icon: 'none' });
+      const selCount = (selectedCouponIds || []).length;
+      if (selCount === 0) {
+        wx.showToast({ title: '请选择要使用的券', icon: 'none' });
+        return;
+      }
+      if (couponLackedTip) {
+        wx.showToast({ title: couponLackedTip, icon: 'none', duration: 2500 });
+        return;
+      }
+      if (!couponCheckResult || couponCheckResult.balance == null) {
+        wx.showToast({ title: '请等待试算完成或重新选择券', icon: 'none' });
+        return;
+      }
+      if (!outTradeNo) {
+        wx.showToast({ title: '订单号异常，无法支付', icon: 'none' });
+        return;
+      }
+      this._processCouponPay(orderData);
+    }
+  },
+
+  /**
+   * 券支付：1) 更新 order.total 为券后金额；2) 调起微信支付（金额为 0 时付 0.01 元）；3) 轮询 pay_status 跳转 ticketinfo（不出票）
+   */
+  async _processCouponPay(orderData) {
+    const { couponCheckResult, outTradeNo, orderId } = this.data;
+    const payRemainVal = parseFloat(couponCheckResult && couponCheckResult.balance != null ? couponCheckResult.balance : 0) || 0;
+    const totalInCents = payRemainVal > 0 ? Math.round(payRemainVal * 100) : 1;
+    const cashStr = (totalInCents / 100).toFixed(2);
+
+    const doCouponPay = () => {
+      wx.showLoading({ title: '正在准备支付...' });
+      this._doCouponPayInner({ orderData, cashStr, totalInCents, outTradeNo, orderId });
+    };
+
+    if (cashStr === '0.01') {
+      wx.showModal({
+        title: '提示',
+        content: '您此单购票由兑换票全额兑换，没有费用，但为了保证您的权益，需要您预先支付0.01元，在出票成功之后，系统会自动退回',
+        confirmText: '同意继续',
+        cancelText: '取消',
+        success: (res) => {
+          if (res.confirm) doCouponPay();
+        }
+      });
+      return;
+    }
+
+    doCouponPay();
+  },
+
+  async _doCouponPayInner(args) {
+    const { orderData, cashStr, totalInCents, outTradeNo, orderId } = args;
+    try {
+      const ids = this.data.selectedCouponIds || [];
+      const boundCouponList = this.data.boundCouponList || [];
+      const codes = ids.map((id) => {
+        const c = boundCouponList.find((x) => String(x.id) === String(id));
+        return c ? (c.couponCode || '').trim() : '';
+      }).filter(Boolean);
+      const cardNumberStr = codes.join(',') || null;
+      await supabase.updateOrder(orderId, { total: cashStr, card_number: cardNumberStr });
+      const orderDataNew = Object.assign({}, orderData || {}, { total: parseFloat(cashStr) });
+      this.setData({ orderData: orderDataNew });
+
+      wx.hideLoading();
+      this._processWeChatPay(outTradeNo, totalInCents, orderDataNew);
+    } catch (e) {
+      wx.hideLoading();
+      wx.showToast({ title: (e && e.message) || '券支付准备失败', icon: 'none' });
     }
   },
 

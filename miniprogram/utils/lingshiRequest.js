@@ -6,6 +6,14 @@ const apiSign = require('./apiSign.js');
 
 const LINGSHI_BASE = 'https://lingshi.meicity.net';
 
+function toError(err) {
+  if (err instanceof Error) return err;
+  const msg = err && (err.errMsg != null ? err.errMsg : err.message != null ? err.message : null);
+  if (typeof msg === 'string' && msg) return new Error(msg);
+  if (typeof err === 'string' && err) return new Error(err);
+  try { return new Error(JSON.stringify(err)); } catch (_) { return new Error('网络或请求异常'); }
+}
+
 /**
  * 获取即将上映电影列表
  * POST /movie/getfuturemovieallinfo，业务参数为空对象
@@ -32,7 +40,7 @@ function getFutureMovies() {
           reject(new Error(data?.message || '请求失败'));
         }
       },
-      fail: reject
+      fail(err) { reject(toError(err)); }
     });
   });
 }

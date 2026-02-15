@@ -151,3 +151,128 @@ page {
   font-weight: 600;
   border-radius: var(--radius-medium);
 }
+
+/* 添加优惠券弹窗（与 confirm-pay 一致） */
+.coupon-modal-mask {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.coupon-modal {
+  width: 600rpx;
+  background: var(--surface);
+  border-radius: var(--radius-medium);
+  padding: var(--space-large);
+}
+
+.coupon-modal-title {
+  font-size: var(--font-h5);
+  font-weight: 600;
+  color: var(--text-primary);
+  text-align: center;
+  margin-bottom: var(--space-small);
+}
+
+.coupon-modal-desc {
+  font-size: var(--font-body2);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-medium);
+}
+
+.coupon-modal-input {
+  height: var(--height-input);
+  background: var(--background);
+  border: 2rpx solid var(--border);
+  border-radius: var(--radius-medium);
+  padding: 0 var(--space-medium);
+  font-size: var(--font-body1);
+  color: #000;
+  margin-bottom: var(--space-large);
+}
+
+.coupon-modal-actions {
+  display: flex;
+  gap: var(--space-medium);
+}
+
+.coupon-modal-btn {
+  flex: 1;
+  height: var(--height-button);
+  line-height: var(--height-button);
+  text-align: center;
+  font-size: var(--font-button);
+  font-weight: 600;
+  border-radius: var(--radius-medium);
+}
+
+.coupon-modal-btn.cancel {
+  background: var(--background);
+  color: var(--text-secondary);
+}
+
+.coupon-modal-btn.confirm {
+  background: var(--primary);
+  color: #fff;
+}
+
+.coupon-modal-btn.confirm.disabled {
+  opacity: 0.6;
+}
+
+/* 券详情弹框 */
+.coupon-detail-modal {
+  width: 600rpx;
+  background: var(--surface);
+  border-radius: var(--radius-medium);
+  padding: var(--space-large);
+}
+
+.coupon-detail-title {
+  font-size: var(--font-h5);
+  font-weight: 600;
+  color: var(--text-primary);
+  text-align: center;
+  margin-bottom: var(--space-medium);
+}
+
+.coupon-detail-body {
+  margin-bottom: var(--space-large);
+  font-size: var(--font-body2);
+}
+
+.coupon-detail-body.coupon-detail-error {
+  color: var(--primary);
+  text-align: center;
+  padding: var(--space-medium);
+}
+
+.coupon-detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: var(--space-xsmall) 0;
+}
+
+.coupon-detail-row .label {
+  color: var(--text-secondary);
+  flex-shrink: 0;
+  margin-right: var(--space-small);
+}
+
+.coupon-detail-row .value {
+  color: var(--text-primary);
+  text-align: right;
+  word-break: break-all;
+}
+
+.coupon-detail-row.coupon-detail-unavailable .value {
+  color: var(--primary);
+}

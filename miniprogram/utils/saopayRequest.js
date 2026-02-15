@@ -7,6 +7,14 @@ const md5 = require('./md5.js');
 
 const SAOPAY_BASE_URL = 'https://saopay.meicity.net/api';
 
+function toError(err) {
+  if (err instanceof Error) return err;
+  const msg = err && (err.errMsg != null ? err.errMsg : err.message != null ? err.message : null);
+  if (typeof msg === 'string' && msg) return new Error(msg);
+  if (typeof err === 'string' && err) return new Error(err);
+  try { return new Error(JSON.stringify(err)); } catch (_) { return new Error('网络或请求异常'); }
+}
+
 function getBaseUrl() {
   try {
     const app = getApp();
@@ -98,7 +106,7 @@ function miniPay(businessParams) {
           reject(new Error((res.data && (res.data.message || res.data.msg)) || 'HTTP ' + res.statusCode));
         }
       },
-      fail: reject
+      fail(err) { reject(toError(err)); }
     });
   });
 }

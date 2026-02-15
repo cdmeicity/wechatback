@@ -55,7 +55,6 @@ Page({
     const initialMovieCode = params.initialMovieCode || null;
     const hallId = params.hallId || null;
 
-    const now = new Date();
     let selectedMovie = movies[0] || null;
     let selectedMovieIndex = 0;
     if (initialMovieCode && movies.length > 0) {
@@ -67,8 +66,8 @@ Page({
     }
 
     const selectmoviecode = this._parseMovieCodes(selectedMovie?.movie_code || selectedMovie?.movieCode || initialMovieCode);
-
     const movieScrollLeft = this._calcMovieScrollLeft(selectedMovieIndex);
+
     this.setData({
       statusBarHeight,
       appbarHeight,

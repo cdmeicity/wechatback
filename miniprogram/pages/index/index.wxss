@@ -337,3 +337,102 @@ page {
 .nav-item.active .nav-label.imax-text {
   color: #FFFFFF;
 }
+
+/* 首页通知弹窗 - VI 规范 */
+.notice-modal-mask {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-large);
+  box-sizing: border-box;
+}
+
+.notice-modal {
+  width: 100%;
+  max-width: 600rpx;
+  background: var(--surface);
+  border-radius: var(--radius-medium);
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.12);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  max-height: 80vh;
+}
+
+.notice-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  padding: var(--space-large) var(--space-medium);
+  border-bottom: 1rpx solid var(--border);
+}
+
+.notice-modal-title {
+  font-size: var(--font-h5);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.notice-modal-close {
+  position: absolute;
+  right: var(--space-medium);
+  top: 50%;
+  transform: translateY(-50%);
+  padding: var(--space-small);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.notice-modal-close-icon {
+  width: 40rpx;
+  height: 40rpx;
+  opacity: 0.6;
+}
+
+.notice-modal-content {
+  height: 50vh;
+  min-height: 240rpx;
+  padding: var(--space-medium) var(--space-large);
+  box-sizing: border-box;
+}
+
+.notice-modal-text {
+  font-size: var(--font-body2);
+  color: var(--text-primary);
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.notice-modal-btn-wrap {
+  display: flex;
+  gap: var(--space-medium);
+  padding: var(--space-medium) var(--space-large) calc(var(--space-large) + env(safe-area-inset-bottom));
+  border-top: 1rpx solid var(--border);
+}
+
+.notice-modal-btn {
+  flex: 1;
+  height: 88rpx;
+  line-height: 88rpx;
+  text-align: center;
+  font-size: var(--font-button);
+  font-weight: 600;
+  color: #fff;
+  background: var(--primary);
+  border-radius: var(--radius-medium);
+}
+
+.notice-modal-btn.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}

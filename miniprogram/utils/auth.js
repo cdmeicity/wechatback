@@ -19,6 +19,15 @@ function getAppSafe() {
   }
 }
 
+/** 将 wx.request fail 回调的 err（可能是对象）转为带可读 message 的 Error，避免真机报错显示 [object Object] */
+function toError(err) {
+  if (err instanceof Error) return err;
+  const msg = err && (err.errMsg != null ? err.errMsg : err.message != null ? err.message : null);
+  if (typeof msg === 'string' && msg) return new Error(msg);
+  if (typeof err === 'string' && err) return new Error(err);
+  try { return new Error(JSON.stringify(err)); } catch (_) { return new Error('网络或请求异常'); }
+}
+
 function getLoginUrl() {
   const app = getAppSafe();
   const base = (app?.globalData?.authBaseUrl || 'https://auth.meicity.net').replace(/\/$/, '');
@@ -37,7 +46,7 @@ function requestLogin(code) {
         if (res.statusCode === 200) resolve(res.data);
         else reject(new Error(res.data?.error || res.data?.message || '登录失败'));
       },
-      fail: reject
+      fail(err) { reject(toError(err)); }
     });
   });
 }
@@ -114,7 +123,7 @@ module.exports = {
         },
         fail(err) {
           auth._clearLocalAuth();
-          reject(err);
+          reject(toError(err));
         }
       });
     });
@@ -126,7 +135,7 @@ module.exports = {
     try {
       LOG('① wx.login', '开始', '获取 code');
       const { code } = await new Promise((resolve, reject) => {
-        wx.login({ success: (r) => resolve(r), fail: reject });
+        wx.login({ success: (r) => resolve(r), fail: (err) => reject(toError(err)) });
       });
       if (!code) {
         LOG('① wx.login', '失败', '未获取到 code');
@@ -203,7 +212,7 @@ module.exports = {
           else reject(new Error(res.data?.message || res.data?.error || '发送失败'));
         },
         fail(err) {
-          reject(err.errMsg || err);
+          reject(toError(err));
         }
       });
     });
@@ -239,7 +248,7 @@ module.exports = {
           }
         },
         fail(err) {
-          reject(err.errMsg || err);
+          reject(toError(err));
         }
       });
     });
@@ -280,7 +289,7 @@ module.exports = {
           }
         },
         fail(err) {
-          reject(err.errMsg || err);
+          reject(toError(err));
         }
       });
     });
@@ -326,7 +335,7 @@ module.exports = {
         },
         fail(err) {
           LOG('请求异常', err);
-          reject(err.errMsg || err);
+          reject(toError(err));
         }
       });
     });
@@ -362,7 +371,7 @@ module.exports = {
         },
         fail(err) {
           LOG('请求异常', err);
-          reject(err.errMsg || err);
+          reject(toError(err));
         }
       });
     });
@@ -413,7 +422,7 @@ module.exports = {
         },
         fail(err) {
           LOG('② 请求异常', err);
-          reject(err.errMsg || err);
+          reject(toError(err));
         }
       });
     });
@@ -444,7 +453,7 @@ module.exports = {
           ...(token ? { 'Authorization': `Bearer ${token}` } : {})
         },
         success: resolve,
-        fail: reject
+        fail(err) { reject(toError(err)); }
       });
     });
   }

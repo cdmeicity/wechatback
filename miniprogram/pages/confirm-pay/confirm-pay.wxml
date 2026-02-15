@@ -61,26 +61,33 @@
 
     <!-- 优惠券（仅会员卡模式不显示） -->
     <view wx:if="{{!onlyMemberCard}}" class="section coupon-section">
-      <view class="section-row">
-        <text class="section-title">优惠券</text>
-        <text class="coupon-link" bindtap="onAddCoupon">添加优惠券</text>
-      </view>
+      <text class="section-title">优惠券</text>
       <view class="coupon-add-cell" bindtap="onAddCoupon">
         <text class="coupon-add-placeholder">输入券码绑定后可在此使用</text>
         <text class="arrow">›</text>
       </view>
-      <!-- 已绑定的券列表 -->
+      <!-- 已绑定的券：卡片 + 方形选择框 -->
       <view wx:if="{{boundCouponList.length > 0}}" class="coupon-list-title">已绑定的券</view>
       <view wx:if="{{boundCouponList.length > 0}}" class="bound-coupon-list">
         <view
           wx:for="{{boundCouponList}}"
           wx:key="id"
-          class="bound-coupon-item"
+          class="bound-coupon-card {{item.isSelected ? 'selected' : ''}}"
+          data-coupon-id="{{'' + item.id}}"
+          bindtap="onSelectCouponCard"
         >
-          <text class="bound-coupon-code">{{item.couponCodeMasked}}</text>
-          <text class="bound-coupon-valid">有效期至 {{item.validToStr}}</text>
+          <view class="bound-coupon-card-body">
+            <text class="bound-coupon-code">{{item.couponCodeMasked}}</text>
+            <text class="bound-coupon-valid">有效期至 {{item.validToStr}}</text>
+          </view>
+          <view class="bound-coupon-checkbox {{item.isSelected ? 'checked' : ''}}">
+            <text wx:if="{{item.isSelected}}" class="bound-coupon-checkbox-tick">✓</text>
+          </view>
         </view>
       </view>
+      <view wx:if="{{selectedMethod === 'coupon' && couponCountTip}}" class="coupon-lacked-tip coupon-count-tip">{{couponCountTip}}</view>
+      <view wx:if="{{selectedMethod === 'coupon' && couponLackedTip && !couponCountTip}}" class="coupon-lacked-tip">{{couponLackedTip}}</view>
+      <view wx:if="{{selectedMethod === 'coupon' && couponCheckLoading}}" class="coupon-check-loading">试算中...</view>
     </view>
 
     <!-- 订单汇总 -->
@@ -93,30 +100,73 @@
         <text class="summary-label">优惠</text>
         <text class="summary-value">-¥{{discountAmount}}</text>
       </view>
-      <view class="summary-row total">
+      <view wx:if="{{selectedMethod === 'coupon' && savedMoney && savedMoney !== '0.00'}}" class="summary-row saved-money">
+        <text class="summary-label">已节省</text>
+        <text class="summary-value primary">¥{{savedMoney}}元</text>
+      </view>
+      <view wx:if="{{selectedMethod !== 'coupon'}}" class="summary-row total">
         <text class="summary-label">总计</text>
         <text class="summary-value primary">¥{{grandTotal}}</text>
+      </view>
+      <view wx:if="{{selectedMethod === 'coupon'}}" class="summary-row pay-remain">
+        <text class="summary-label">还需要支付</text>
+        <text class="summary-value primary">￥{{payRemain}}元</text>
       </view>
     </view>
 
     <view class="bottom-spacer"></view>
   </scroll-view>
 
-  <!-- 添加优惠券弹窗：输入券码 + 确认 -->
-  <view wx:if="{{showCouponModal}}" class="coupon-modal-mask" catchtouchmove="preventTouchMove" bindtap="onCouponModalCancel">
-    <view class="coupon-modal" catchtap="preventTouchMove">
+  <!-- 添加优惠券弹窗：仅点击蒙层关闭，内容区不拦截以让输入框可输入；券码为数字，调起数字键盘 -->
+  <view
+    wx:if="{{showCouponModal}}"
+    id="couponModalMask"
+    class="coupon-modal-mask"
+    catchtouchmove="preventTouchMove"
+    bindtap="onCouponModalMaskTap"
+  >
+    <view class="coupon-modal">
       <view class="coupon-modal-title">添加优惠券</view>
       <view class="coupon-modal-desc">请输入券码</view>
       <input
         class="coupon-modal-input"
-        type="text"
+        type="number"
         placeholder="请输入券码"
         value="{{_couponCodeInput}}"
         bindinput="onCouponCodeInput"
+        focus="{{showCouponModal}}"
       />
       <view class="coupon-modal-actions">
         <view class="coupon-modal-btn cancel" bindtap="onCouponModalCancel">取消</view>
         <view class="coupon-modal-btn confirm {{_couponSubmitting ? 'disabled' : ''}}" bindtap="onCouponModalConfirm">确认</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 券详情弹框：调用券详情接口后展示，取消仅关闭，确定则写入 coupon_instance -->
+  <view
+    wx:if="{{showCouponDetailModal}}"
+    class="coupon-modal-mask"
+    style="z-index: 1001;"
+    catchtouchmove="preventTouchMove"
+    bindtap="onCouponDetailModalCancel"
+  >
+    <view class="coupon-detail-modal" catchtap="preventTouchMove">
+      <view class="coupon-detail-title">券详情</view>
+      <view wx:if="{{couponDetailData.error}}" class="coupon-detail-body coupon-detail-error">
+        <text>{{couponDetailData.error}}</text>
+      </view>
+      <view wx:else class="coupon-detail-body">
+        <view class="coupon-detail-row"><text class="label">券名称</text><text class="value">{{couponDetailData.couponName || '—'}}</text></view>
+        <view class="coupon-detail-row"><text class="label">有效期</text><text class="value">{{couponDetailData.periodSdate || couponDetailData.period_sdate || '—'}} 至 {{couponDetailData.periodEdate || couponDetailData.period_edate || '—'}}</text></view>
+        <view wx:if="{{couponDetailData.couponAvailable == 1}}" class="coupon-detail-row"><text class="label">状态</text><text class="value">可用</text></view>
+        <view wx:else class="coupon-detail-row coupon-detail-unavailable">
+          <text class="label">状态</text><text class="value">不可用（{{couponDetailData.unavailabilityReasonText || '不可用'}}）</text>
+        </view>
+      </view>
+      <view class="coupon-modal-actions">
+        <view class="coupon-modal-btn cancel" bindtap="onCouponDetailModalCancel">取消</view>
+        <view class="coupon-modal-btn confirm" bindtap="onCouponDetailModalConfirm">确定</view>
       </view>
     </view>
   </view>
@@ -146,7 +196,7 @@
   <view class="bottom-bar">
     <view class="total-wrap">
       <text class="total-label">应付金额</text>
-      <text class="total-price">¥{{grandTotal}}</text>
+      <text class="total-price">¥{{selectedMethod === 'coupon' ? payRemain : grandTotal}}</text>
     </view>
     <button class="btn-pay" bindtap="onPay">立即支付</button>
   </view>

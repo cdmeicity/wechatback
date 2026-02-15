@@ -1,6 +1,10 @@
 const supabase = require('../../utils/supabase');
 const lingshiRequest = require('../../utils/lingshiRequest');
 const cardApi = require('../../utils/cardApi.js');
+const auth = require('../../utils/auth.js');
+const noticeReadStorage = require('../../utils/noticeReadStorage.js');
+
+const STORAGE_KEY_PREFIX = 'index_notice_ack_';
 
 function formatDistance(meters) {
   if (meters == null) return '';
@@ -19,7 +23,7 @@ Page({
       { name: '影院活动', icon: 'activity', theme: 'primary' },
       { name: 'IMAX专场', icon: 'imax', theme: 'secondary' },
       { name: '会员专区', icon: 'vip', theme: 'accent' },
-      { name: '卡券购买', icon: 'card', theme: 'surface' }
+      { name: '卡券管理', icon: 'card', theme: 'surface' }
     ],
     // 热映影片
     hotMovies: [],
@@ -29,6 +33,12 @@ Page({
     loadingFutureMovies: true,
     // 未读通知数（演示）
     totalUnreadCount: 0,
+    // 首页通知弹窗（来自 new_notice 表）
+    showNoticeModal: false,
+    noticeContent: '',
+    noticeId: null,
+    noticeList: [],      // type=event 列表，用于上一条/下一条
+    noticeCurrentIndex: 0,
     // 影院列表（占位，暂不从 dingxin 拉取）
     cinemaList: [],
     currentCinema: null,
@@ -52,19 +62,27 @@ Page({
       menuButtonHeight: menu.height || 32,
       headerRightPadding: sys.windowWidth - (menu.left || sys.windowWidth - 100) + 8
     });
-    this.loadNearCinemaList().then(() => this.loadMovies());
+    this.loadNearCinemaList().then(() => {
+      this.loadMovies();
+      this._fetchAndShowNotice();
+      this._refreshNoticeUnreadCount();
+    });
+  },
 
+  /** 刷新首页通知图标未读数（通知中心用 noticeReadStorage 统计） */
+  _refreshNoticeUnreadCount() {
     const app = getApp();
-    const gd = app.globalData || {};
-    if (!gd.indexImportantTipShown) {
-      gd.indexImportantTipShown = true;
-      wx.showModal({
-        title: '重要提示',
-        content: '美承影院微信小程序全新上线，正在测试中，如果有使用中的问题，请在我的-问题反馈-进行反馈！感谢您的支持！美承影业全体员工祝您马年快乐，身体健康，观影愉快！',
-        showCancel: false,
-        confirmText: '知道了'
-      });
-    }
+    const gd = app?.globalData || {};
+    const cinemainfo = gd.cinemainfo || null;
+    // new_notice.cinema_id 存的是影院编号，与 cinemaNumber/cinema_code 对应
+    const cinemaId = cinemainfo && (cinemainfo.cinemaNumber || cinemainfo.cinema_num || cinemainfo.cinema_code || cinemainfo.cinemaid || cinemainfo.cinema_id);
+    const cid = cinemaId != null ? String(cinemaId).trim() : '';
+    supabase.getNoticeList(cid, 'wechat', null)
+      .then(list => {
+        const count = noticeReadStorage.getUnreadCount(list || []);
+        this.setData({ totalUnreadCount: count });
+      })
+      .catch(() => this.setData({ totalUnreadCount: 0 }));
   },
 
   onShow() {
@@ -79,6 +97,119 @@ Page({
     if (gd.sessionReady && u?.id) {
       this._refreshAppCardInfo();
     }
+    if (this.data.currentCinema) {
+      this._fetchAndShowNotice();
+      this._refreshNoticeUnreadCount();
+    }
+  },
+
+  /** 获取当前用户标识，用于持久化「我已了解」状态（一个用户每个通知只显示一次） */
+  _getNoticeAckUserKey() {
+    const gd = getApp()?.globalData || {};
+    const openid = (gd.wxProfile && gd.wxProfile.openid) || (auth.getOpenid && auth.getOpenid()) || '';
+    const userId = gd.supabaseUser?.id;
+    return (openid || userId || 'guest').toString();
+  },
+
+  /** 从本地存储读取该用户已确认的通知 id 列表 */
+  _getAckedNoticeIds() {
+    const key = STORAGE_KEY_PREFIX + this._getNoticeAckUserKey();
+    try {
+      const raw = wx.getStorageSync(key);
+      if (Array.isArray(raw)) return raw;
+      if (raw != null && typeof raw === 'object' && Array.isArray(raw.ids)) return raw.ids;
+      return [];
+    } catch (e) {
+      return [];
+    }
+  },
+
+  /** 将通知 id 标记为已确认并持久化 */
+  _markNoticeAcked(noticeId) {
+    if (noticeId == null) return;
+    const key = STORAGE_KEY_PREFIX + this._getNoticeAckUserKey();
+    const ids = this._getAckedNoticeIds();
+    const idStr = String(noticeId);
+    if (ids.indexOf(idStr) >= 0) return;
+    ids.push(idStr);
+    try {
+      wx.setStorageSync(key, ids);
+    } catch (e) {
+      console.warn('[index] 保存通知已读失败', e);
+    }
+  },
+
+  /** 查询 new_notice：type=event、channel=wechat、cinema_id=cinemaid 或 null，最新一条；加载列表用于上一条/下一条 */
+  async _fetchAndShowNotice() {
+    const app = getApp();
+    const gd = app.globalData || {};
+    const cinemainfo = gd.cinemainfo || null;
+    // new_notice.cinema_id 存的是影院编号，与 cinemaNumber/cinema_code 对应
+    const cinemaId = cinemainfo && (cinemainfo.cinemaNumber || cinemainfo.cinema_num || cinemainfo.cinema_code || cinemainfo.cinemaid || cinemainfo.cinema_id);
+    const cid = cinemaId != null ? String(cinemaId).trim() : '';
+    const [notice, list] = await Promise.all([
+      supabase.getLatestNotice(cid),
+      supabase.getNoticeList(cid, 'wechat', 'event')
+    ]);
+    if (!notice || !notice.id) return;
+    const content = notice.content != null ? String(notice.content).trim() : '';
+    if (!content) return;
+    if (gd.indexNoticeShownForId === notice.id) return;
+    const acked = this._getAckedNoticeIds();
+    if (acked.indexOf(String(notice.id)) >= 0) return;
+    const noticeList = Array.isArray(list) ? list : [];
+    const idx = noticeList.findIndex(n => n && String(n.id) === String(notice.id));
+    const noticeCurrentIndex = idx >= 0 ? idx : 0;
+    this.setData({
+      showNoticeModal: true,
+      noticeContent: content,
+      noticeId: notice.id,
+      noticeList,
+      noticeCurrentIndex
+    });
+  },
+
+  preventTouchMove() {},
+
+  /** 通知弹窗关闭：右上角 X 或点击遮罩 */
+  onNoticeModalClose() {
+    const { noticeId } = this.data;
+    if (noticeId != null) this._markNoticeAcked(noticeId);
+    const app = getApp();
+    if (app && app.globalData && noticeId != null) app.globalData.indexNoticeShownForId = noticeId;
+    this.setData({ showNoticeModal: false, noticeContent: '', noticeId: null, noticeList: [], noticeCurrentIndex: 0 });
+  },
+
+  /** 上一条：显示列表中更早（时间更旧）的一条 */
+  onNoticePrev() {
+    const { noticeList, noticeCurrentIndex } = this.data;
+    if (!noticeList || noticeList.length === 0) return;
+    const nextIdx = noticeCurrentIndex + 1;
+    if (nextIdx >= noticeList.length) return;
+    const item = noticeList[nextIdx];
+    const content = item && item.content != null ? String(item.content).trim() : '';
+    if (!content) return;
+    this.setData({
+      noticeContent: content,
+      noticeId: item.id,
+      noticeCurrentIndex: nextIdx
+    });
+  },
+
+  /** 下一条：显示列表中更新（时间更新）的一条 */
+  onNoticeNext() {
+    const { noticeList, noticeCurrentIndex } = this.data;
+    if (!noticeList || noticeList.length === 0) return;
+    const prevIdx = noticeCurrentIndex - 1;
+    if (prevIdx < 0) return;
+    const item = noticeList[prevIdx];
+    const content = item && item.content != null ? String(item.content).trim() : '';
+    if (!content) return;
+    this.setData({
+      noticeContent: content,
+      noticeId: item.id,
+      noticeCurrentIndex: prevIdx
+    });
   },
 
   /**
@@ -161,7 +292,9 @@ Page({
         wx.getLocation({
           type: 'wgs84',
           success: resolve,
-          fail: reject
+          fail(err) {
+            reject(err instanceof Error ? err : new Error(err && (err.errMsg || err.message) || '获取位置失败'));
+          }
         });
       });
       lat = loc.latitude;
@@ -213,6 +346,7 @@ Page({
           app.globalData.cinemainfo = Object.assign({}, selected);
         }
         this.loadMovies(); // 切换影院后重新加载热映/即将上映
+        this._fetchAndShowNotice(); // 切换影院后拉取该影院最新通知
       }
     });
   },
@@ -232,7 +366,6 @@ Page({
       const future = results[1] || [];
       const today = new Date().toISOString().slice(0, 10);
       const hotFiltered = hot.filter(m => (m.release_date || '') <= today);
-      const app = getApp();
       if (app && app.globalData) {
         app.globalData.hotMovies = hotFiltered.slice();
       }
@@ -274,6 +407,14 @@ Page({
       wx.navigateTo({ url: '/pages/card-manage/card-manage' });
     } else if (name === 'IMAX专场') {
       wx.navigateTo({ url: '/pages/imax/imax' });
+    } else if (name === '卡券管理') {
+      const u = getApp()?.globalData?.supabaseUser;
+      const userId = (u && (u.id || u.user_id || u.userId)) || null;
+      if (!userId) {
+        wx.showToast({ title: '请先登录后查看券列表', icon: 'none' });
+        return;
+      }
+      wx.navigateTo({ url: '/pages/coupon-list/coupon-list' });
     } else {
       wx.showToast({ title: name + ' 开发中', icon: 'none' });
     }

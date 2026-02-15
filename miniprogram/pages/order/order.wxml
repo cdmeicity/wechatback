@@ -82,12 +82,12 @@
             <view class="btn-outline" bindtap="onViewTicket" data-out-trade-no="{{item.outTradeNo}}">查看影票</view>
           </block>
           <block wx:elif="{{currentTab === 1 && item.status === 'pending'}}">
-            <view class="btn-outline">取消订单</view>
-            <view class="btn-primary-sm">马上支付</view>
+            <view class="btn-outline" bindtap="onCancelOrder" data-order-id="{{item.id}}" data-out-trade-no="{{item.outTradeNo}}">取消订单</view>
+            <view class="btn-primary-sm" bindtap="onPay" data-order-id="{{item.id}}" data-out-trade-no="{{item.outTradeNo}}">确认支付</view>
           </block>
           <block wx:elif="{{currentTab === 2}}">
-            <view wx:if="{{item.status === 'pending'}}" class="btn-outline">取消订单</view>
-            <view wx:if="{{item.status === 'pending'}}" class="btn-primary-sm">马上支付</view>
+            <view wx:if="{{item.status === 'pending'}}" class="btn-outline" bindtap="onCancelOrder" data-order-id="{{item.id}}" data-out-trade-no="{{item.outTradeNo}}">取消订单</view>
+            <view wx:if="{{item.status === 'pending'}}" class="btn-primary-sm" bindtap="onPay" data-order-id="{{item.id}}" data-out-trade-no="{{item.outTradeNo}}">确认支付</view>
             <view wx:if="{{item.status !== 'pending'}}" class="btn-success" bindtap="onViewTicket" data-out-trade-no="{{item.outTradeNo}}">查看影票</view>
           </block>
         </view>

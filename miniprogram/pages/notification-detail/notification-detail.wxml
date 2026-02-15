@@ -1,0 +1,14 @@
+<view class="notice-detail-page light-theme">
+  <view wx:if="{{loading}}" class="notice-detail-loading">
+    <text>加载中...</text>
+  </view>
+  <view wx:else class="notice-detail-body">
+    <view class="notice-detail-header">
+      <text class="notice-detail-type">{{typeLabel}}</text>
+      <text class="notice-detail-time">{{createdAtStr}}</text>
+    </view>
+    <view class="notice-detail-content">
+      <text class="notice-detail-text">{{content}}</text>
+    </view>
+  </view>
+</view>

@@ -1,1 +1,149 @@
-.container { padding: 24rpx; color: #888; }
+/**
+ * 通知中心 - VI 规范，文章式列表
+ */
+@import '../../styles/vi.wxss';
+
+page {
+  background: var(--background);
+}
+
+.notice-page.light-theme {
+  min-height: 100vh;
+  background: var(--background);
+  box-sizing: border-box;
+}
+
+/* 标签 */
+.notice-tabs {
+  display: flex;
+  background: var(--surface);
+  border-bottom: 2rpx solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.notice-tab {
+  flex: 1;
+  height: 96rpx;
+  line-height: 96rpx;
+  text-align: center;
+  font-size: var(--font-body1);
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.notice-tab.active {
+  color: var(--primary);
+  font-weight: 600;
+  border-bottom: 4rpx solid var(--primary);
+  margin-bottom: -2rpx;
+}
+
+.notice-tab-text {
+  display: inline-block;
+}
+
+/* 列表 */
+.notice-scroll {
+  height: calc(100vh - 96rpx);
+  padding: var(--space-medium) var(--space-large);
+  box-sizing: border-box;
+}
+
+.notice-loading {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-xxlarge);
+  font-size: var(--font-body1);
+  color: var(--text-secondary);
+}
+
+.notice-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--space-xxlarge);
+}
+
+.notice-empty-icon {
+  font-size: 96rpx;
+  margin-bottom: var(--space-medium);
+}
+
+.notice-empty-text {
+  font-size: var(--font-body1);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-xsmall);
+}
+
+.notice-empty-hint {
+  font-size: var(--font-caption);
+  color: var(--text-placeholder);
+}
+
+.notice-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-medium);
+}
+
+/* 文章卡片 */
+.notice-article {
+  background: var(--surface);
+  border-radius: var(--radius-medium);
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+}
+
+.notice-article-inner {
+  display: flex;
+  align-items: center;
+  padding: var(--space-large);
+  min-height: 120rpx;
+}
+
+.notice-article-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.notice-article-content {
+  font-size: var(--font-body1);
+  color: var(--text-primary);
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.notice-article-meta {
+  display: flex;
+  align-items: center;
+  margin-top: var(--space-xsmall);
+  gap: var(--space-small);
+}
+
+.notice-article-time {
+  font-size: var(--font-caption);
+  color: var(--text-placeholder);
+}
+
+.notice-article-dot {
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 50%;
+  background: var(--error);
+  flex-shrink: 0;
+}
+
+.notice-article-arrow {
+  font-size: 48rpx;
+  color: var(--text-placeholder);
+  margin-left: var(--space-small);
+}
+
+.notice-bottom-pad {
+  height: var(--space-large);
+}

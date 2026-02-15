@@ -20,6 +20,15 @@ function getConfig() {
   return { url: DEFAULT_URL.replace(/\/$/, ''), key: DEFAULT_ANON_KEY };
 }
 
+/** 将 wx.request fail 的 err 转为带可读 message 的 Error，避免真机报错 [object Object] */
+function toError(err) {
+  if (err instanceof Error) return err;
+  const msg = err && (err.errMsg != null ? err.errMsg : err.message != null ? err.message : null);
+  if (typeof msg === 'string' && msg) return new Error(msg);
+  if (typeof err === 'string' && err) return new Error(err);
+  try { return new Error(JSON.stringify(err)); } catch (_) { return new Error('网络或请求异常'); }
+}
+
 function request(path, method = 'GET', body, extraHeaders = {}) {
   const { url, key } = getConfig();
   const fullUrl = path.startsWith('http') ? path : `${url}/rest/v1${path}`;
@@ -43,7 +52,7 @@ function request(path, method = 'GET', body, extraHeaders = {}) {
         }
       },
       fail(err) {
-        reject(err);
+        reject(toError(err));
       }
     });
   });
@@ -58,7 +67,7 @@ function ping() {
       method: 'GET',
       header: { 'apikey': key, 'Authorization': `Bearer ${key}` },
       success() { resolve(true); },
-      fail(err) { reject(err); }
+      fail(err) { reject(toError(err)); }
     });
   });
 }
@@ -98,7 +107,7 @@ function rpcCalcTicketPrice(playId, userId, opts) {
       },
       fail(err) {
         console.warn('[supabase][rpc_calc_ticket_price_tx] 网络/请求失败', err);
-        reject(err);
+        reject(toError(err));
       }
     });
   });
@@ -186,7 +195,7 @@ function getNearCinemaList(userLat, userLng, maxResults = 10) {
         }
       },
       fail(err) {
-        reject(err);
+        reject(toError(err));
       }
     });
   });
@@ -249,6 +258,13 @@ const supabase = {
     }
     return request(path);
   },
+  /** 按 id 查询订单（用于获取完整订单字段如 seat_id） */
+  getOrderById: (orderId) => {
+    if (!orderId) return Promise.resolve(null);
+    return request(`/cinema_order_list?id=eq.${encodeURIComponent(orderId)}&select=*&limit=1`)
+      .then(arr => (Array.isArray(arr) && arr.length > 0 ? arr[0] : null))
+      .catch(() => null);
+  },
   /** 按 out_trade_no 查询订单（用于 N7 出票状态轮询/跳转票务详情） */
   getOrderByOutTradeNo: (outTradeNo) => {
     if (!outTradeNo) return Promise.resolve(null);
@@ -275,6 +291,49 @@ const supabase = {
     if (cinemaId) path += `&cinema_id=eq.${encodeURIComponent(cinemaId)}`;
     if (hallId) path += `&hall_id=eq.${encodeURIComponent(hallId)}`;
     return request(path);
+  },
+
+  /**
+   * 查询 new_notice：type=event、channel=wechat、(cinema_id=cinemaId 或 cinema_id 为空)、created_at 最新一条
+   * @param {string} cinemaId - 影院编号（app.cinemainfo.cinemaNumber / cinema_code，与 new_notice.cinema_id 对应）
+   * @returns {Promise<{ id, content, created_at, cinema_id, channel, type }|null>}
+   */
+  getLatestNotice: (cinemaId) => {
+    const cid = cinemaId != null ? String(cinemaId).trim() : '';
+    const orPart = cid ? `or=(cinema_id.eq.${encodeURIComponent(cid)},cinema_id.is.null)` : 'cinema_id=is.null';
+    return request(
+      `/new_notice?${orPart}&channel=eq.wechat&type=eq.event&order=created_at.desc&select=id,content,created_at,cinema_id,channel,type&limit=1`
+    )
+      .then(arr => (Array.isArray(arr) && arr.length > 0 ? arr[0] : null))
+      .catch(() => null);
+  },
+
+  /**
+   * 查询 new_notice 列表：channel=wechat、(cinema_id=cinemaId 或 cinema_id 为空)、可选 type，created_at 降序
+   * @param {string} [cinemaId] - 影院编号（cinemaNumber/cinema_code），空时只查 cinema_id 为空的
+   * @param {string} [channel='wechat'] - 渠道
+   * @param {string} [type] - 类型：'event' 活动通知，'system' 系统通知
+   */
+  getNoticeList: (cinemaId, channel = 'wechat', type) => {
+    const cid = cinemaId != null ? String(cinemaId).trim() : '';
+    const orPart = cid ? `or=(cinema_id.eq.${encodeURIComponent(cid)},cinema_id.is.null)` : 'cinema_id=is.null';
+    let path = `/new_notice?${orPart}&channel=eq.${encodeURIComponent(channel)}&order=created_at.desc&select=id,content,created_at,cinema_id,channel,type`;
+    if (type && String(type).trim()) {
+      path += `&type=eq.${encodeURIComponent(String(type).trim())}`;
+    }
+    return request(path)
+      .then(arr => (Array.isArray(arr) ? arr : []))
+      .catch(() => []);
+  },
+
+  /** 按 id 查询单条 new_notice */
+  getNoticeById: (id) => {
+    if (id == null || String(id).trim() === '') return Promise.resolve(null);
+    return request(
+      `/new_notice?id=eq.${encodeURIComponent(String(id).trim())}&select=*&limit=1`
+    )
+      .then(arr => (Array.isArray(arr) && arr.length > 0 ? arr[0] : null))
+      .catch(() => null);
   },
   // 按 openid 查询 user_profiles
   getUserProfileByOpenid: (openid) => {
@@ -494,14 +553,15 @@ const supabase = {
     const order = 'order=valid_to.asc';
     const selectPart = `select=${select}`;
 
+    const statusFilter = 'status=eq.available';
     const fetchByUserId = () => {
       if (!uid) return Promise.resolve([]);
-      const path = `/coupon_instance?user_id=eq.${encodeURIComponent(uid)}&${order}&${selectPart}`;
+      const path = `/coupon_instance?user_id=eq.${encodeURIComponent(uid)}&${statusFilter}&${order}&${selectPart}`;
       return request(path).then(arr => (Array.isArray(arr) ? arr : [])).catch(() => []);
     };
     const fetchByPhone = () => {
       if (!ph) return Promise.resolve([]);
-      const path = `/coupon_instance?phone=eq.${encodeURIComponent(ph)}&${order}&${selectPart}`;
+      const path = `/coupon_instance?phone=eq.${encodeURIComponent(ph)}&${statusFilter}&${order}&${selectPart}`;
       return request(path).then(arr => (Array.isArray(arr) ? arr : [])).catch(() => []);
     };
 
@@ -562,6 +622,55 @@ const supabase = {
   },
 
   /**
+   * 根据券详情接口结果写入 coupon_instance（新增一条，完全符合表结构）
+   * @param {Object} detail - coupon_detail 返回：periodSdate、periodEdate、couponName、couponValue、coupon_rule_id 等
+   * @param {string} couponCode - 券电子码
+   * @param {string} [userId] - 当前用户 id，可选
+   * @param {string} [phone] - 当前用户手机号，可选
+   * @param {number} [templateId=1] - coupon_template.id，无则用 1
+   */
+  insertCouponFromDetail: (detail, couponCode, userId, phone, templateId = 1) => {
+    const code = String(couponCode || '').trim();
+    if (!code) return Promise.reject(new Error('券码不能为空'));
+    const validFrom = parseCouponDetailDate(detail.periodSdate || detail.period_sdate, true);
+    const validTo = parseCouponDetailDate(detail.periodEdate || detail.period_edate, false);
+    if (!validFrom || !validTo) return Promise.reject(new Error('券有效期无效'));
+
+    const tid = Number(detail.template_id ?? detail.coupon_rule_id ?? templateId) || 1;
+    const serial = (detail.coupon_serial || detail.couponSerial || code) || code;
+    const sourceId = detail.coupon_rule_id != null ? String(detail.coupon_rule_id) : (detail.electronCode ? String(detail.electronCode) : null);
+
+    const sourceDetail = detail && typeof detail === 'object'
+      ? {
+          couponName: detail.couponName ?? detail.coupon_name,
+          couponValue: detail.couponValue ?? detail.coupon_value,
+          couponAvailable: detail.couponAvailable ?? detail.coupon_available,
+          periodSdate: detail.periodSdate ?? detail.period_sdate,
+          periodEdate: detail.periodEdate ?? detail.period_edate,
+          unavailabilityReason: detail.unavailabilityReason ?? detail.unavailability_reason,
+          coupon_rule_id: detail.coupon_rule_id,
+          electronCode: detail.electronCode ?? detail.electron_code
+        }
+      : null;
+
+    const body = {
+      tenant_id: '5f3c8e2a-9b4d-4f7a-8c21-6d2a1e9b73c4',
+      template_id: tid,
+      user_id: userId ? String(userId) : null,
+      coupon_code: code,
+      coupon_serial: serial,
+      source_type: 'manual',
+      source_id: sourceId,
+      source_detail: sourceDetail,
+      status: 'available',
+      valid_from: validFrom,
+      valid_to: validTo,
+      phone: phone && String(phone).trim() ? String(phone).trim() : null
+    };
+    return request('/coupon_instance', 'POST', body);
+  },
+
+  /**
    * 上传反馈图片到 Storage：桶 public-assets，路径 wechat-users/{user_id}/
    * @param {string} filePath - 本地临时路径（wx.chooseMedia 返回）
    * @param {string} user_id - 用户 ID 或 openid，用于路径
@@ -599,14 +708,29 @@ const supabase = {
                 reject(new Error(reqRes.data?.message || reqRes.data?.error || '上传失败'));
               }
             },
-            fail: reject
+            fail(err) { reject(toError(err)); }
           });
         },
-        fail: reject
+        fail(err) { reject(toError(err)); }
       });
     });
   }
 };
+
+/** 解析券详情返回的日期为 ISO 字符串，startOfDay  true=当天 00:00，false=当天 23:59 */
+function parseCouponDetailDate(val, startOfDay) {
+  if (val == null || val === '') return null;
+  const s = String(val).trim();
+  let d;
+  if (/^\d{4}-\d{2}-\d{2}/.test(s)) {
+    const part = s.slice(0, 10);
+    d = new Date(part + (startOfDay ? 'T00:00:00+08:00' : 'T23:59:59+08:00'));
+  } else {
+    d = new Date(s);
+  }
+  if (isNaN(d.getTime())) return null;
+  return d.toISOString();
+}
 
 function getExtension(path) {
   if (!path || typeof path !== 'string') return '.jpg';

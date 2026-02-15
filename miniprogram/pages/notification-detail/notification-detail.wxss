@@ -1,0 +1,62 @@
+/**
+ * 通知详情 - VI 规范，文章式展示
+ */
+@import '../../styles/vi.wxss';
+
+page {
+  background: var(--background);
+}
+
+.notice-detail-page.light-theme {
+  min-height: 100vh;
+  background: var(--background);
+  box-sizing: border-box;
+  padding: var(--space-large);
+}
+
+.notice-detail-loading {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-xxlarge);
+  font-size: var(--font-body1);
+  color: var(--text-secondary);
+}
+
+.notice-detail-body {
+  max-width: 750rpx;
+  margin: 0 auto;
+}
+
+.notice-detail-header {
+  margin-bottom: var(--space-large);
+  padding-bottom: var(--space-medium);
+  border-bottom: 2rpx solid var(--border);
+}
+
+.notice-detail-type {
+  display: block;
+  font-size: var(--font-caption);
+  color: var(--primary);
+  font-weight: 600;
+  margin-bottom: var(--space-xsmall);
+}
+
+.notice-detail-time {
+  font-size: var(--font-caption);
+  color: var(--text-placeholder);
+}
+
+.notice-detail-content {
+  background: var(--surface);
+  border-radius: var(--radius-medium);
+  padding: var(--space-large);
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.06);
+}
+
+.notice-detail-text {
+  font-size: var(--font-body1);
+  color: var(--text-primary);
+  line-height: 1.8;
+  white-space: pre-wrap;
+  word-break: break-word;
+}

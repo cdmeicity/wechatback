@@ -104,6 +104,25 @@
     </scroll-view>
   </view>
 
+  <!-- 首页通知弹窗：new_notice type=event，右上角关闭，上一条/下一条 -->
+  <view wx:if="{{showNoticeModal}}" class="notice-modal-mask" catchtouchmove="preventTouchMove" bindtap="onNoticeModalClose">
+    <view class="notice-modal" catchtap="preventTouchMove">
+      <view class="notice-modal-header">
+        <text class="notice-modal-title">通知</text>
+        <view class="notice-modal-close" bindtap="onNoticeModalClose">
+          <image class="notice-modal-close-icon" src="/images/icon-close.svg" mode="aspectFit" />
+        </view>
+      </view>
+      <scroll-view scroll-y class="notice-modal-content" show-scrollbar="{{true}}">
+        <text class="notice-modal-text">{{noticeContent}}</text>
+      </scroll-view>
+      <view class="notice-modal-btn-wrap">
+        <view class="notice-modal-btn notice-modal-btn-prev {{noticeCurrentIndex >= noticeList.length - 1 ? 'disabled' : ''}}" bindtap="onNoticePrev">上一条</view>
+        <view class="notice-modal-btn notice-modal-btn-next {{noticeCurrentIndex <= 0 ? 'disabled' : ''}}" bindtap="onNoticeNext">下一条</view>
+      </view>
+    </view>
+  </view>
+
   <!-- 底部导航栏：未选中仅图标（IMAX仅文字），选中图标+文字+红底 -->
   <view class="bottom-nav">
     <view

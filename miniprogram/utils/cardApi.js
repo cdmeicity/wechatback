@@ -50,11 +50,11 @@ function getCardLevelRule(cinemaId) {
       console.log('[cardApi] get_card_level_rule 成功（list），返回', data.list.length, '条');
       return data.list;
     }
-    console.log('[cardApi] get_card_level_rule 响应无 rule 数组', res);
+    console.log('[cardApi] get_card_level_rule 响应无 rule 数组', res ? { code: res.code, message: res.message, hasData: !!res.data } : res);
     return [];
   }).catch((err) => {
     console.error('[cardApi] get_card_level_rule 失败', err);
-    return Promise.reject(err);
+    return Promise.reject(err instanceof Error ? err : new Error(err && (err.message || err.errMsg) || String(err)));
   });
 }
 

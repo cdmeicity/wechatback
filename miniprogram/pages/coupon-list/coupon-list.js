@@ -5,6 +5,7 @@
 const supabase = require('../../utils/supabase.js');
 const auth = require('../../utils/auth.js');
 const dateHelper = require('../../utils/dateHelper.js');
+const couponApi = require('../../utils/couponApi.js');
 
 function maskCouponCode(code) {
   if (!code || typeof code !== 'string') return '****';
@@ -24,7 +25,13 @@ Page({
   data: {
     list: [],
     loading: true,
-    isLoggedIn: false
+    isLoggedIn: false,
+    showCouponModal: false,
+    _couponCodeInput: '',
+    _couponSubmitting: false,
+    showCouponDetailModal: false,
+    couponDetailData: null,
+    _couponDetailCode: ''
   },
 
   onLoad() {
@@ -47,6 +54,15 @@ Page({
     const gd = getApp()?.globalData || {};
     return (gd.wxProfile && gd.wxProfile.openid) || (auth.getOpenid && auth.getOpenid()) || '';
   },
+
+  _getUserId() {
+    const app = getApp();
+    const gd = app?.globalData || {};
+    const u = gd.userinfo || gd.supabaseUser || null;
+    return (u && (u.user_id || u.id || u.userId)) || null;
+  },
+
+  preventTouchMove() {},
 
   _checkAndLoad() {
     const openid = this._getOpenid();
@@ -98,6 +114,7 @@ Page({
       });
   },
 
+  /** 点击「新绑券」：打开本页添加优惠券弹窗（与 confirm-pay 一致） */
   onAddBind() {
     const openid = this._getOpenid();
     const phone = this._getUserPhone();
@@ -105,7 +122,109 @@ Page({
       wx.showToast({ title: '请先登录', icon: 'none' });
       return;
     }
-    wx.navigateTo({ url: '/pages/coupon-bind/coupon-bind' });
+    this.setData({ showCouponModal: true, _couponCodeInput: '', _couponSubmitting: false });
+  },
+
+  onCouponCodeInput(e) {
+    this.setData({ _couponCodeInput: (e.detail && e.detail.value) || '' });
+  },
+
+  onCouponModalCancel() {
+    if (this.data._couponSubmitting) return;
+    this.setData({ showCouponModal: false, _couponCodeInput: '' });
+  },
+
+  onCouponModalMaskTap(e) {
+    if (!e || !e.target || !e.currentTarget) return;
+    const tid = (e.target && e.target.id) || '';
+    const cid = (e.currentTarget && e.currentTarget.id) || '';
+    if (tid === cid && cid === 'couponModalMask') this.onCouponModalCancel();
+  },
+
+  /** 确认：有 cid 则调券详情接口并弹框；无 cid 则直接弹框展示“无影院信息” */
+  onCouponModalConfirm() {
+    const code = String(this.data._couponCodeInput || '').trim();
+    if (!code) {
+      wx.showToast({ title: '请输入券码', icon: 'none' });
+      return;
+    }
+    const self = this;
+    const cinemainfo = getApp()?.globalData?.cinemainfo || {};
+    const cid = (cinemainfo.cinemaid || '').toString().trim();
+    if (!cid) {
+      self.setData({
+        _couponSubmitting: false,
+        showCouponDetailModal: true,
+        couponDetailData: { error: '当前无影院信息，无法校验券' },
+        _couponDetailCode: code
+      });
+      return;
+    }
+    self.setData({ _couponSubmitting: true });
+    couponApi.getCouponDetail(cid, code)
+      .then((detail) => {
+        const avail = detail.couponAvailable ?? detail.coupon_available;
+        const availNum = avail != null ? Number(avail) : null;
+        const reason = detail.unavailabilityReason ?? detail.unavailability_reason ?? 0;
+        const reasonText = (couponApi.getUnavailabilityReasonText || (() => '不可用'))(reason);
+        const normalized = Object.assign({}, detail, { couponAvailable: availNum, unavailabilityReasonText: reasonText });
+        self.setData({
+          _couponSubmitting: false,
+          showCouponDetailModal: true,
+          couponDetailData: normalized,
+          _couponDetailCode: code
+        });
+      })
+      .catch((err) => {
+        self.setData({
+          _couponSubmitting: false,
+          showCouponDetailModal: true,
+          couponDetailData: { error: (err && err.message) || '券详情查询失败' },
+          _couponDetailCode: code
+        });
+      });
+  },
+
+  onCouponDetailModalCancel() {
+    this.setData({ showCouponDetailModal: false, couponDetailData: null, _couponDetailCode: '' });
+  },
+
+  onCouponDetailModalConfirm() {
+    const { couponDetailData, _couponDetailCode } = this.data;
+    const self = this;
+    this.setData({ showCouponDetailModal: false, couponDetailData: null, _couponDetailCode: '' });
+    if (!couponDetailData || couponDetailData.error) return;
+    const avail = couponDetailData.couponAvailable ?? couponDetailData.coupon_available;
+    if (Number(avail) !== 1) {
+      wx.showToast({ title: '券状态不正确，不能绑定', icon: 'none' });
+      return;
+    }
+    const code = String(_couponDetailCode || '').trim();
+    if (!code) return;
+    const userId = this._getUserId();
+    const phone = this._getUserPhone();
+    supabase.insertCouponFromDetail(couponDetailData, code, userId || undefined, phone || undefined)
+      .then(() => {
+        wx.showToast({ title: '添加成功', icon: 'success' });
+        self.setData({ showCouponModal: false, _couponCodeInput: '' });
+        self._loadList();
+      })
+      .catch((err) => {
+        const msg = (err && err.message) || '';
+        if (msg.indexOf('duplicate') !== -1 || msg.indexOf('唯一') !== -1 || msg.indexOf('already exists') !== -1) {
+          if (userId) {
+            supabase.bindCoupon(userId, code).then(() => {
+              wx.showToast({ title: '绑定成功', icon: 'success' });
+              self.setData({ showCouponModal: false, _couponCodeInput: '' });
+              self._loadList();
+            }).catch((e2) => {
+              wx.showToast({ title: (e2 && e2.message) || '绑定失败', icon: 'none' });
+            });
+            return;
+          }
+        }
+        wx.showToast({ title: msg || '写入失败', icon: 'none' });
+      });
   },
 
   onGoLogin() {

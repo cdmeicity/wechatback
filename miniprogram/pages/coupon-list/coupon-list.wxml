@@ -13,7 +13,7 @@
     <view wx:elif="{{list.length === 0}}" class="coupon-empty">
       <text class="coupon-empty-icon">🎫</text>
       <text class="coupon-empty-text">暂无券</text>
-      <text class="coupon-empty-hint">点击上方「新绑券」输入券码绑定</text>
+      <text class="coupon-empty-hint">暂无已绑定的券</text>
     </view>
     <view wx:else class="coupon-list">
       <view
@@ -35,5 +35,59 @@
     <text class="coupon-login-icon">🔐</text>
     <text class="coupon-login-text">请先登录后查看券列表</text>
     <view class="coupon-login-btn" bindtap="onGoLogin">去登录</view>
+  </view>
+
+  <!-- 添加优惠券弹窗（与 confirm-pay 一致）：输入券码 → 券详情弹框 → 确定写入 coupon_instance -->
+  <view
+    wx:if="{{showCouponModal}}"
+    id="couponModalMask"
+    class="coupon-modal-mask"
+    catchtouchmove="preventTouchMove"
+    bindtap="onCouponModalMaskTap"
+  >
+    <view class="coupon-modal">
+      <view class="coupon-modal-title">添加优惠券</view>
+      <view class="coupon-modal-desc">请输入券码</view>
+      <input
+        class="coupon-modal-input"
+        type="number"
+        placeholder="请输入券码"
+        value="{{_couponCodeInput}}"
+        bindinput="onCouponCodeInput"
+        focus="{{showCouponModal}}"
+      />
+      <view class="coupon-modal-actions">
+        <view class="coupon-modal-btn cancel" bindtap="onCouponModalCancel">取消</view>
+        <view class="coupon-modal-btn confirm {{_couponSubmitting ? 'disabled' : ''}}" bindtap="onCouponModalConfirm">确认</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 券详情弹框 -->
+  <view
+    wx:if="{{showCouponDetailModal}}"
+    class="coupon-modal-mask"
+    style="z-index: 1001;"
+    catchtouchmove="preventTouchMove"
+    bindtap="onCouponDetailModalCancel"
+  >
+    <view class="coupon-detail-modal" catchtap="preventTouchMove">
+      <view class="coupon-detail-title">券详情</view>
+      <view wx:if="{{couponDetailData.error}}" class="coupon-detail-body coupon-detail-error">
+        <text>{{couponDetailData.error}}</text>
+      </view>
+      <view wx:else class="coupon-detail-body">
+        <view class="coupon-detail-row"><text class="label">券名称</text><text class="value">{{couponDetailData.couponName || '—'}}</text></view>
+        <view class="coupon-detail-row"><text class="label">有效期</text><text class="value">{{couponDetailData.periodSdate || couponDetailData.period_sdate || '—'}} 至 {{couponDetailData.periodEdate || couponDetailData.period_edate || '—'}}</text></view>
+        <view wx:if="{{couponDetailData.couponAvailable == 1}}" class="coupon-detail-row"><text class="label">状态</text><text class="value">可用</text></view>
+        <view wx:else class="coupon-detail-row coupon-detail-unavailable">
+          <text class="label">状态</text><text class="value">不可用（{{couponDetailData.unavailabilityReasonText || '不可用'}}）</text>
+        </view>
+      </view>
+      <view class="coupon-modal-actions">
+        <view class="coupon-modal-btn cancel" bindtap="onCouponDetailModalCancel">取消</view>
+        <view class="coupon-modal-btn confirm" bindtap="onCouponDetailModalConfirm">确定</view>
+      </view>
+    </view>
   </view>
 </view>

@@ -14,10 +14,12 @@ Page({
   },
 
   onLoad() {
+    if (!auth.redirectToLoginIfNeeded()) return;
     this._loadList();
   },
 
   onShow() {
+    if (!auth.redirectToLoginIfNeeded()) return;
     this._loadList();
   },
 

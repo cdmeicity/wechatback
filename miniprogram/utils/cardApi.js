@@ -91,6 +91,64 @@ function getMinAddMoneyFromDetail(detail) {
 }
 
 /**
+ * 会员卡状态描述：根据 cardStatus 数值显示中文
+ * 1-正常 2-挂失 3-退卡 4-销卡 5-过期 6-废卡 8-未启用 9-休眠 10-冻结
+ * 该字段值为空时表示尚未生效
+ */
+function getCardStatusText(status) {
+  if (status == null || status === '') return '该字段尚未生效';
+  const map = {
+    1: '正常',
+    2: '挂失',
+    3: '退卡',
+    4: '销卡',
+    5: '过期',
+    6: '废卡',
+    8: '未启用',
+    9: '休眠',
+    10: '冻结'
+  };
+  const n = Number(status);
+  return map[n] != null ? map[n] : '未知(' + status + ')';
+}
+
+/**
+ * 将 card_detail 接口返回的完整 detail 合并到 baseCardinfo，并做字段标准化
+ * 保证接口返回的全部 JSON 都会在 merged 里，同时统一 cardNumber、balance、cardStatus 等供业务使用
+ * @param {Object} baseCardinfo - 原有 cardinfo（可为 null）
+ * @param {Object} detail - parseCardDetailResponse(res) 的返回值
+ * @returns {Object} 合并后的 cardinfo
+ */
+function mergeCardDetailIntoCardinfo(baseCardinfo, detail) {
+  if (!detail || typeof detail !== 'object') return baseCardinfo || {};
+  const base = baseCardinfo || {};
+  const merged = Object.assign({}, base, detail);
+
+  const validity = detail.period || detail.validity || detail.validDate || detail.expireDate || detail.expire_time || detail.endDate || null;
+  const balanceVal = detail.balance ?? detail.money;
+  const pointsVal = detail.availableJifen ?? detail.points ?? detail.integral;
+  const discountVal = detail.discount != null && detail.discount !== '' ? detail.discount : null;
+  const n = discountVal != null ? Number(discountVal) : NaN;
+  const discountDisplay = !isNaN(n) ? (n + '%') : null;
+  const cardStatusVal = detail.cardStatus ?? detail.card_status ?? base.cardStatus;
+
+  merged.cardNumber = merged.cardNumber || merged.card_number || base.cardNumber;
+  merged.card_name = merged.card_number || merged.cardNumber;
+  merged.cardName = detail.cardLevel || detail.cardName || detail.levelName || base.cardName || '会员卡';
+  merged.balance = balanceVal != null && balanceVal !== '' ? parseFloat(balanceVal) : (base.balance != null ? base.balance : null);
+  merged.points = pointsVal != null && pointsVal !== '' ? parseInt(pointsVal, 10) : (base.points != null ? base.points : null);
+  merged.minAddMoney = getMinAddMoneyFromDetail(detail) ?? base.minAddMoney;
+  merged.validity = validity != null && validity !== '' ? String(validity) : (base.validity != null ? base.validity : null);
+  merged.discount = discountVal != null ? discountVal : base.discount;
+  merged.discountDisplay = discountDisplay || base.discountDisplay;
+  merged.cardStatus = cardStatusVal;
+  merged.cardStatusDisplay = getCardStatusText(cardStatusVal);
+  merged.mobile = detail.mobile ?? base.mobile ?? null;
+  merged.phone = base.phone != null ? base.phone : (detail.mobile || detail.phone || detail.phoneNumber || null);
+  return merged;
+}
+
+/**
  * 获取会员卡详情（接口：GET /api/member/card_detail）
  * 按影院 + 卡号查会员卡详情（余额、等级、折扣、有效期等）
  * 返回 data 结构：cardNumber, balance, availableJifen, period, cardLevel, discount, mobile, minAddMoney, giftCard, priceInfo 等
@@ -100,7 +158,12 @@ function getCardDetail(cid, card) {
   if (!cinemaId || !card) return Promise.reject(new Error('缺少影院ID或卡号'));
   console.log('[cardApi] GET /member/card_detail', { cid: cinemaId, card });
   return dingxin.get('/member/card_detail', { cid: cinemaId, card }).then((res) => {
-    console.log('[cardApi] card_detail 响应', { code: res?.code, message: res?.message, hasData: !!res?.data, hasMinAddMoney: !!(parseCardDetailResponse(res) && getMinAddMoneyFromDetail(parseCardDetailResponse(res))) });
+    try {
+      const detail = parseCardDetailResponse(res);
+      console.log('[cardApi] card_detail 会员卡详情 接口返回', detail != null ? JSON.stringify(detail) : 'null');
+    } catch (e) {
+      console.warn('[cardApi] card_detail 解析详情失败', e);
+    }
     if (res?.code !== 200 && res?.code !== '200') {
       return Promise.reject(new Error(res?.message || res?.msg || '查询会员卡详情失败'));
     }
@@ -274,6 +337,8 @@ module.exports = {
   getCardDetail,
   parseCardDetailResponse,
   getMinAddMoneyFromDetail,
+  getCardStatusText,
+  mergeCardDetailIntoCardinfo,
   authCardPassword,
   cardBind,
   cardUnbind,

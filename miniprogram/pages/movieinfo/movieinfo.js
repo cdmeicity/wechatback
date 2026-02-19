@@ -3,6 +3,7 @@
  * 数据来源：app.globalData.currentMovie（首页 goMovie 时写入）
  */
 const dateHelper = require('../../utils/dateHelper.js');
+const auth = require('../../utils/auth.js');
 
 Page({
   data: {
@@ -14,6 +15,14 @@ Page({
   },
 
   onLoad() {
+    // 只校验登录（token），不因无手机跳转；无手机留到排期页点击场次时再弹获取手机号
+    const token = auth.getAccessToken();
+    const storedUser = auth.getUser();
+    if (!token || !storedUser) {
+      wx.showToast({ title: '请先登录', icon: 'none' });
+      wx.redirectTo({ url: '/pages/login/login' });
+      return;
+    }
     const app = getApp();
     const movie = app.globalData.currentMovie || null;
     if (!movie) {

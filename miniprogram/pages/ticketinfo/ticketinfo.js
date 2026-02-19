@@ -11,6 +11,7 @@
 const supabase = require('../../utils/supabase.js');
 const qrcode = require('../../utils/qrcode.js');
 const dateHelper = require('../../utils/dateHelper.js');
+const auth = require('../../utils/auth.js');
 
 function parseSeats(seatList) {
   if (Array.isArray(seatList)) return seatList.map(String);
@@ -40,6 +41,7 @@ Page({
   },
 
   onLoad(options) {
+    if (!auth.redirectToLoginIfNeeded()) return;
     const outTradeNo = (options && options.out_trade_no) ? String(options.out_trade_no).trim() : '';
     if (!outTradeNo) {
       this.setData({ loading: false, errorMessage: '订单号不存在' });
@@ -51,7 +53,17 @@ Page({
   },
 
   onClose() {
-    wx.navigateBack({ fail: () => wx.switchTab({ url: '/pages/index/index' }) });
+    wx.reLaunch({ url: '/pages/index/index' });
+  },
+
+  /** 返回首页（清栈，与 onClose 一致） */
+  onGoHome() {
+    wx.reLaunch({ url: '/pages/index/index' });
+  },
+
+  /** 我的订单 */
+  onGoOrder() {
+    wx.navigateTo({ url: '/pages/order/order' });
   },
 
   /** 无条形码时点击「刷新取票码」重新拉取订单与条形码 */

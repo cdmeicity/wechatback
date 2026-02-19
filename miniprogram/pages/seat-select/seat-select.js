@@ -51,12 +51,20 @@ Page({
   },
 
   async onLoad(options) {
+    if (!auth.redirectToLoginIfNeeded()) return;
     const playId = options.playId || '';
     const orderId = options.orderId || '';
     const outTradeNo = options.outTradeNo || '';
     const app = getApp();
     const gd = app?.globalData || {};
     const order = gd.playOrder || null;
+
+    // 选座页仅允许从 play 页「新建订单」后进入；否则视为非法入口，退回首页
+    if (!orderId || !order || String(order.id) !== String(orderId)) {
+      console.warn('[seat-select][onLoad] 非从 play 新建订单进入，重定向首页', { orderId, playOrderId: order && order.id });
+      wx.reLaunch({ url: '/pages/index/index' });
+      return;
+    }
     const showtime = gd.playShowtime || null;
     const movie = gd.playMovie || null;
     const priceDetails = gd.playPriceDetails || null;
@@ -176,6 +184,19 @@ Page({
       if (success) {
         await supabase.updateOrder(orderId, { lock_flag: lockFlag });
         console.log('[seat-select][M6.4] 会员锁座成功，订单 lock_flag 已更新');
+        const orderAfter = await supabase.getOrderById(orderId);
+        const hasLockFlag = orderAfter && (orderAfter.lock_flag != null && String(orderAfter.lock_flag).trim() !== '');
+        if (!hasLockFlag) {
+          console.warn('[seat-select][M6.4] 订单 lock_flag 为空，提示用户重新选座');
+          wx.showModal({
+            title: '重要提示',
+            content: '由于网络波动等原因，您选择的座位没有锁座成功，请您重新选择影片、场次及座位，再次确认，感谢您的理解和支持。',
+            showCancel: false,
+            confirmText: '确定',
+            success: (r) => { if (r.confirm) wx.reLaunch({ url: '/pages/play/play' }); }
+          });
+          return;
+        }
         await this._node('M6.4', '会员锁座成功，弹退改签协议后跳转 confirm-pay');
         const updatedOrder = Object.assign({}, orderData, { lock_flag: lockFlag });
         if (app && app.globalData) app.globalData.playOrder = updatedOrder;
@@ -192,12 +213,12 @@ Page({
         const errMsg = (res && (res.message || res.msg)) || '未知错误';
         console.log('[seat-select][M6.4] 会员锁座失败', { errMsg });
         this._nodeSync('M6.4', '会员锁座失败', { errMsg });
-        // wx.showToast({ title: '锁座失败: ' + errMsg, icon: 'none' });
+        wx.showToast({ title: '锁座失败：' + errMsg, icon: 'none', duration: 2500 });
       }
     } catch (e) {
       console.error('[seat-select][M6.4] 会员锁座异常', e);
       this._nodeSync('M6.4', '会员锁座异常', { err: e.message || e.errMsg });
-      // wx.showToast({ title: '锁座失败: ' + (e.message || e.errMsg || '未知错误'), icon: 'none' });
+      wx.showToast({ title: '锁座失败，请重试', icon: 'none' });
     }
   },
 
@@ -207,7 +228,7 @@ Page({
   onMemberCardPasswordConfirm: function () {
     const pwd = (this.data._memberCardPasswordInput || '').trim();
     if (!pwd) {
-      // wx.showToast({ title: '请输入密码', icon: 'none' });
+      wx.showToast({ title: '请输入会员卡密码', icon: 'none' });
       return;
     }
     const ctx = this.data._memberCardPayCtx;
@@ -222,13 +243,13 @@ Page({
   async _doMemberCardPayInSeatSelect(ctx, plainPassword) {
     const { updatedOrderData, cardNumber, cinemaId, playId, selectedIds, total, orderId, outTradeNo, partnerBuyTicketId } = ctx;
     if (!cinemaId || !cardNumber || !playId || !selectedIds || selectedIds.length === 0 || !partnerBuyTicketId) {
-      // wx.showToast({ title: '参数不完整，无法支付', icon: 'none' });
+      wx.showToast({ title: '参数不完整，无法支付', icon: 'none' });
       return;
     }
     const app = getApp();
     const mobile = (app.globalData.supabaseUser && (app.globalData.supabaseUser.phone || app.globalData.supabaseUser.mobile)) || '';
     if (!mobile) {
-      // wx.showToast({ title: '请先登录并绑定手机号', icon: 'none' });
+      wx.showToast({ title: '请先登录并绑定手机号', icon: 'none' });
       return;
     }
     const passwordMd5 = md5(plainPassword).toLowerCase();
@@ -270,8 +291,7 @@ Page({
         wx.switchTab({ url: '/pages/index/index' });
       }
     } catch (e) {
-      // wx.hideLoading();
-      // wx.showToast({ title: (e.message || e.errMsg) || '扣费失败，请重试', icon: 'none' });
+      wx.showToast({ title: (e && (e.message || e.errMsg)) || '扣费失败，请重试', icon: 'none' });
     }
   },
 
@@ -543,53 +563,59 @@ Page({
         const showtime = app.globalData && app.globalData.playShowtime;
         const movie = app.globalData && app.globalData.playMovie;
 
-        // 6.2 购买限制检查
-        const cid = orderData.cinema_id || orderData.cinemaId || orderData.cinema_num || '';
-        const totalStr = total.toFixed(2);
-        let orderConfirmRes = null;
-        try {
-          console.log('[seat-select][M6.2] order_confirm 请求', { cid, card: cardNumber, play_id: playId, total: totalStr });
-          orderConfirmRes = await cardApi.orderConfirm({ cid, card: cardNumber, play_id: playId, total: totalStr });
-          console.log('[seat-select][M6.2] order_confirm 响应', { res: orderConfirmRes });
-          const data0 = orderConfirmRes && (orderConfirmRes.data || orderConfirmRes);
-          await this._node('M6.2', '购买限制检查 order_confirm 返回', { isNull: !orderConfirmRes, canBuy: data0 && data0.canBuy, hasBalanceCheck: !!(data0 && data0.balanceCheck), hasDayBuyInfo: !!(data0 && data0.dayBuyInfo), hasShowBuyInfo: !!(data0 && data0.showBuyInfo) });
-        } catch (e6) {
-          console.warn('[seat-select][M6.2] order_confirm 请求异常', e6);
-          await this._node('M6.2', 'order_confirm 请求异常，按 null 处理继续', { err: e6.message || String(e6) });
+        // 6.2 购买限制检查（三步：余额 → 卡状态 → 当日购票数）
+        const balanceVal = Number(cardinfo.balance);
+        const totalVal = Number(total);
+        const balanceEnough = !isNaN(balanceVal) && !isNaN(totalVal) && balanceVal >= totalVal;
+
+        if (!balanceEnough) {
+          console.log('[seat-select][M6.2] 第一步不通过：余额不足', { balance: balanceVal, total: totalVal });
+          wx.showModal({
+            title: '余额不足',
+            content: '您的余额不足，请到会员卡管理页面进行充值，或者解绑会员卡使用普通用户价格购票。',
+            cancelText: '取消',
+            confirmText: '确定',
+            success: (modalRes) => { if (modalRes.confirm) wx.navigateTo({ url: '/pages/card-manage/card-manage' }); }
+          });
+          return;
         }
 
-        if (orderConfirmRes) {
-          const data = orderConfirmRes.data || orderConfirmRes;
-          const canBuy = data.canBuy;
-          const msg = data._message || data.message || data.msg || '';
-          const reasons = Array.isArray(data.reasons) ? data.reasons.join('；') : (data.reasons || '');
+        const cardStatus = cardinfo.cardStatus;
+        // 接口可能返回数字 1 或字符串 "1"，均视为正常
+        if (Number(cardStatus) !== 1) {
+          console.log('[seat-select][M6.2] 第二步不通过：会员卡状态异常', { cardStatus });
+          const cardStatusDisplay = cardStatus == null ? '空' : String(cardStatus);
+          wx.showModal({
+            title: '会员卡状态异常',
+            content: '会员卡状态异常，不能购票。当前 cardStatus 值：' + cardStatusDisplay + '（正常为 1）\n可以到我的页面，问题反馈进行反馈。',
+            cancelText: '取消',
+            confirmText: '确定',
+            success: (modalRes) => { if (modalRes.confirm) wx.reLaunch({ url: '/pages/index/index' }); }
+          });
+          return;
+        }
 
-          if (canBuy === false) {
-            console.log('[seat-select][M6.2] canBuy=false，订单确认失败', { msg, reasons });
-            // wx.showModal({ title: '[M6.2] 订单确认失败', content: msg || reasons || '无法确认订单', showCancel: false, confirmText: '确定' });
-            return;
-          }
+        const orderStartTimeForDay = orderData.start_time || (showtime && showtime.startTime);
+        const startMs = dateHelper.beijingTimeStringToMs(orderStartTimeForDay);
+        const buyDay = startMs != null ? dateHelper.formatBeijingTime(new Date(startMs), 'YYYY-MM-DD') : '';
+        let buyNum = 0;
+        try {
+          buyNum = await supabase.getCardDayBuyNum(cardNumber, buyDay);
+        } catch (e) {
+          console.warn('[seat-select][M6.2] 第三步查询 v_card_day_buy_number 异常', e);
+        }
+        const maxBuyNum = cardinfo.maxBuyNum != null ? Number(cardinfo.maxBuyNum) : 999;
 
-          const balanceCheck = data.balanceCheck || {};
-          if (balanceCheck.canPay === false) {
-            console.log('[seat-select][M6.2] balanceCheck.canPay=false，余额不足', { balance: balanceCheck.balance, total: totalStr });
-            // wx.showModal({ title: '余额不足', ... success: (modalRes) => { if (modalRes.confirm) wx.navigateTo(...); } });
-            return;
-          }
-
-          const dayBuyInfo = data.dayBuyInfo || {};
-          if (dayBuyInfo.canBuy === false) {
-            console.log('[seat-select][M6.2] dayBuyInfo.canBuy=false，当日购票限制');
-            // wx.showModal({ title: '当日购票限制', content: dayContent, cancelText: '取消', confirmText: '确定', success: (modalRes) => { if (modalRes.confirm) this._handleUnbindCard(app); } });
-            return;
-          }
-
-          const showBuyInfo = data.showBuyInfo || {};
-          if (showBuyInfo.canBuy === false) {
-            console.log('[seat-select][M6.2] showBuyInfo.canBuy=false，当场购票限制');
-            // wx.showModal({ title: '当场购票限制', content: showContent, cancelText: '取消', confirmText: '确定', success: (modalRes) => { if (modalRes.confirm) this._handleUnbindCard(app); } });
-            return;
-          }
+        if (buyNum >= maxBuyNum) {
+          console.log('[seat-select][M6.2] 第三步不通过：当日已达上限', { buyNum, maxBuyNum, buyDay });
+          wx.showModal({
+            title: '当日购票限制',
+            content: '您已经达到了当日最大的购买数量，请明天再进行购买，或者解绑会员卡，用普通用户价格购买，感谢您的理解和支持！',
+            cancelText: '取消',
+            confirmText: '确定',
+            success: (modalRes) => { if (modalRes.confirm) wx.reLaunch({ url: '/pages/index/index' }); }
+          });
+          return;
         }
 
         // 6.3 会员时间判断：开场时间用数据库字段（北京时间），当前时间用 Date.now()（UTC 当前时刻），做差得距开场分钟数
@@ -743,13 +769,25 @@ Page({
               try {
                 await supabase.updateOrder(orderId, { lock_flag: lockFlag, out_trade_no: nonMemberGtOutTradeNo });
                 console.log('[seat-select][NL3] 订单 lock_flag、out_trade_no 更新成功', { orderId, lockFlag: lockFlag ? '有' : '无', out_trade_no: nonMemberGtOutTradeNo });
-                await this._node('NL3', '订单 lock_flag、out_trade_no 已更新，弹退改签协议后跳转 confirm-pay', { orderId, lockFlag, out_trade_no: nonMemberGtOutTradeNo });
-                // 合并 U10 字段 + lock_flag + out_trade_no 到订单，写入 globalData 供 confirm-pay 使用
-                const updatedOrder = Object.assign({}, orderData, patchData, { lock_flag: lockFlag, out_trade_no: nonMemberGtOutTradeNo });
-                if (app && app.globalData) app.globalData.playOrder = updatedOrder;
               } catch (upErr) {
                 console.error('[seat-select][NL3] 订单 lock_flag 更新失败', upErr);
               }
+              const orderAfter = await supabase.getOrderById(orderId);
+              const hasLockFlag = orderAfter && (orderAfter.lock_flag != null && String(orderAfter.lock_flag).trim() !== '');
+              if (!hasLockFlag) {
+                console.warn('[seat-select][NL3] 订单 lock_flag 为空，提示用户重新选座');
+                wx.showModal({
+                  title: '重要提示',
+                  content: '由于网络波动等原因，您选择的座位没有锁座成功，请您重新选择影片、场次及座位，再次确认，感谢您的理解和支持。',
+                  showCancel: false,
+                  confirmText: '确定',
+                  success: (r) => { if (r.confirm) wx.reLaunch({ url: '/pages/play/play' }); }
+                });
+                return;
+              }
+              await this._node('NL3', '订单 lock_flag、out_trade_no 已更新，弹退改签协议后跳转 confirm-pay', { orderId, lockFlag, out_trade_no: nonMemberGtOutTradeNo });
+              const updatedOrder = Object.assign({}, orderData, patchData, { lock_flag: lockFlag, out_trade_no: nonMemberGtOutTradeNo });
+              if (app && app.globalData) app.globalData.playOrder = updatedOrder;
               wx.showModal({
                 title: '退改签协议',
                 content: REFUND_CHANGE_AGREEMENT,
@@ -760,14 +798,15 @@ Page({
                 }
               });
             } else {
-              console.log('[seat-select][N6] 非会员锁座失败', { msg: res && (res.message || res.msg) });
-              this._nodeSync('N6', '非会员锁座失败', { msg: res && (res.message || res.msg) });
-              // wx.showModal({ title: '[N6] 锁座失败', content: ..., showCancel: false });
+              const n6Msg = (res && (res.message || res.msg)) || '锁座失败';
+              console.log('[seat-select][N6] 非会员锁座失败', { msg: n6Msg });
+              this._nodeSync('N6', '非会员锁座失败', { msg: n6Msg });
+              wx.showToast({ title: n6Msg, icon: 'none', duration: 2500 });
             }
           } catch (e) {
             console.error('[seat-select][NL1] 非会员锁座异常', e);
             this._nodeSync('NL1', '非会员锁座异常', { err: e.message || e.errMsg });
-            // wx.showModal({ title: '[NL1] 锁座失败', content: ..., showCancel: false });
+            wx.showToast({ title: '锁座失败，请重试', icon: 'none' });
           }
         } else {
           // N7: 非会员支付小于第三方开场时间，订单号 mcyy-wechat-yplj-{id}，弹退改签协议后直接调起微信支付
@@ -946,7 +985,7 @@ Page({
     }, M65_POLL_INTERVAL_MS);
     this._m65TimeoutTimer = setTimeout(function () {
       self._clearM65Timers();
-      wx.redirectTo({ url: '/pages/ticketinfo/ticketinfo?out_trade_no=' + encodeURIComponent(outTradeNo) });
+      wx.reLaunch({ url: '/pages/ticketinfo/ticketinfo?out_trade_no=' + encodeURIComponent(outTradeNo) });
     }, M65_POLL_TIMEOUT_MS);
   },
 
@@ -958,7 +997,7 @@ Page({
       var status = (order.pay_status || order.payStatus || '').toString();
       if (status === 'SUCCESS') {
         self._clearM65Timers();
-        wx.redirectTo({ url: '/pages/ticketinfo/ticketinfo?out_trade_no=' + encodeURIComponent(outTradeNo) });
+        wx.reLaunch({ url: '/pages/ticketinfo/ticketinfo?out_trade_no=' + encodeURIComponent(outTradeNo) });
       }
     });
   },
@@ -982,10 +1021,10 @@ Page({
 
   _navigateToTicketInfoPage: function (outTradeNo) {
     if (!outTradeNo) {
-      wx.redirectTo({ url: '/pages/order/order' });
+      wx.reLaunch({ url: '/pages/order/order' });
       return;
     }
-    wx.redirectTo({ url: '/pages/ticketinfo/ticketinfo?out_trade_no=' + encodeURIComponent(outTradeNo) });
+    wx.reLaunch({ url: '/pages/ticketinfo/ticketinfo?out_trade_no=' + encodeURIComponent(outTradeNo) });
   },
 
   preventTouchMove: function () {},

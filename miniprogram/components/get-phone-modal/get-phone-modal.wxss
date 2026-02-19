@@ -1,0 +1,137 @@
+/* 微信手机号授权弹窗：与登录页一致的协议勾选样式 */
+.get-phone-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40rpx;
+  box-sizing: border-box;
+}
+
+.get-phone-modal {
+  width: 100%;
+  max-width: 600rpx;
+  background: #fff;
+  border-radius: 24rpx;
+  padding: 48rpx 40rpx;
+  position: relative;
+}
+
+.get-phone-close {
+  position: absolute;
+  top: 24rpx;
+  right: 24rpx;
+  width: 64rpx;
+  height: 64rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+}
+
+.get-phone-close-icon {
+  font-size: 48rpx;
+  font-weight: 300;
+  color: #999;
+  line-height: 1;
+}
+
+.get-phone-header {
+  margin-bottom: 32rpx;
+  text-align: center;
+}
+
+.get-phone-title {
+  display: block;
+  font-size: 36rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.get-phone-desc {
+  display: block;
+  font-size: 26rpx;
+  color: #999;
+  margin-top: 12rpx;
+}
+
+.get-phone-body {
+  padding: 0;
+}
+
+.get-phone-btn {
+  width: 100%;
+  height: 96rpx;
+  line-height: 96rpx;
+  background: #07c160;
+  color: #fff;
+  font-size: 32rpx;
+  font-weight: 600;
+  border-radius: 48rpx;
+  border: none;
+}
+
+.get-phone-btn::after {
+  border: none;
+}
+
+.get-phone-agree-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  margin-top: 40rpx;
+  font-size: 24rpx;
+  color: #999;
+  line-height: 1.5;
+}
+
+.get-phone-checkbox {
+  width: 36rpx;
+  height: 36rpx;
+  margin-right: 12rpx;
+  border: 2rpx solid #ccc;
+  border-radius: 6rpx;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.get-phone-checkbox.checked {
+  background: #07c160;
+  border-color: #07c160;
+}
+
+.get-phone-checkbox-tick {
+  color: #fff;
+  font-size: 26rpx;
+  font-weight: bold;
+  line-height: 36rpx;
+}
+
+.get-phone-tip {
+  color: #999;
+}
+
+.get-phone-link {
+  color: #FE4A49;
+  text-decoration: underline;
+  margin: 0 4rpx;
+}
+
+.get-phone-deny-tip {
+  margin-top: 24rpx;
+  padding: 20rpx;
+  background: #fff5f5;
+  border-radius: 12rpx;
+  font-size: 24rpx;
+  color: #c00;
+  text-align: center;
+}

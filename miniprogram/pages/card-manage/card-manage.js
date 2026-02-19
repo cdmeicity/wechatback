@@ -35,6 +35,7 @@ Page({
   },
 
   onShow() {
+    if (!auth.redirectToLoginIfNeeded()) return;
     this._refreshCardInfo();
     this._fetchCardDetailAndUpdateIfBound();
   },
@@ -52,31 +53,13 @@ Page({
       const res = await cardApi.getCardDetail(cid, cardinfo.cardNumber);
       const detail = cardApi.parseCardDetailResponse(res);
       if (!detail || typeof detail !== 'object') return;
-      const validity = detail.period || detail.validity || detail.validDate || detail.expireDate || detail.expire_time || detail.endDate || null;
-      const balanceVal = detail.balance ?? detail.money;
-      const pointsVal = detail.availableJifen ?? detail.points ?? detail.integral;
-      const discountVal = detail.discount != null && detail.discount !== '' ? detail.discount : null;
-      const n = discountVal != null ? Number(discountVal) : NaN;
-      const discountDisplay = !isNaN(n) ? (n + '%') : null;
-      const minAddMoneyVal = cardApi.getMinAddMoneyFromDetail(detail) ?? cardinfo.minAddMoney;
-      const updated = {
-        cardNumber: detail.cardNumber || detail.card_number || cardinfo.cardNumber,
-        cardName: detail.cardLevel || detail.cardName || detail.levelName || cardinfo.cardName || '会员卡',
-        balance: balanceVal != null && balanceVal !== '' ? parseFloat(balanceVal) : cardinfo.balance,
-        points: pointsVal != null && pointsVal !== '' ? parseInt(pointsVal, 10) : cardinfo.points,
-        minAddMoney: minAddMoneyVal != null ? minAddMoneyVal : cardinfo.minAddMoney,
-        validity: validity != null && validity !== '' ? String(validity) : cardinfo.validity,
-        discount: discountVal != null ? discountVal : cardinfo.discount,
-        discountDisplay: discountDisplay || cardinfo.discountDisplay,
-        mobile: detail.mobile || null,
-        phone: cardinfo.phone
-      };
+      const updated = cardApi.mergeCardDetailIntoCardinfo(cardinfo, detail);
       app.globalData.cardinfo = updated;
       this.setData({
         cardInfo: { ...updated, discountDisplay: updated.discountDisplay || this._formatDiscountDisplay(updated.discount) },
         hasBoundCard: true
       });
-      console.log('[card-manage] card_detail 已刷新', { balance: updated.balance, minAddMoney: updated.minAddMoney });
+      console.log('[card-manage] _fetchCardDetailAndUpdateIfBound 会员卡详情已更新到 cardinfo', JSON.stringify(updated));
     } catch (e) {
       console.warn('[card-manage] _fetchCardDetailAndUpdateIfBound 失败', e);
     }
@@ -95,7 +78,8 @@ Page({
     const hasBoundCard = !!(cardinfo && cardinfo.cardNumber);
     const cardInfo = cardinfo ? {
       ...cardinfo,
-      discountDisplay: cardinfo.discountDisplay || this._formatDiscountDisplay(cardinfo.discount)
+      discountDisplay: cardinfo.discountDisplay || this._formatDiscountDisplay(cardinfo.discount),
+      cardStatusDisplay: cardApi.getCardStatusText(cardinfo.cardStatus)
     } : null;
     this.setData({ cardInfo, hasBoundCard });
     console.log('[card-manage] _refreshCardInfo', { hasCard: !!cardinfo, cardNumber: cardinfo?.cardNumber, hasBoundCard });
@@ -410,14 +394,16 @@ Page({
       return;
     }
     const app = getApp();
-    const u = app?.globalData?.supabaseUser;
-    const phone = u?.phone || '';
+    const gd = app?.globalData || {};
+    const storedUser = auth.getUser ? auth.getUser() : null;
+    const u = gd.supabaseUser || gd.userinfo || storedUser;
+    const phone = (u?.phone || u?.mobile || storedUser?.phone || storedUser?.mobile || '').toString().trim();
     if (!phone) {
-      LOG('① 校验失败', '未登录或无手机号');
-      wx.showToast({ title: '请先登录并绑定手机号', icon: 'none' });
+      LOG('① 校验失败', '无手机号');
+      wx.showToast({ title: '请先绑定手机号', icon: 'none' });
       return;
     }
-    LOG('① 校验通过', { userId: u?.id, phone: phone.slice(0, 3) + '****' });
+    LOG('① 校验通过（仅校验 users.phone 不为空）', { userId: u?.id, phone: phone.slice(0, 3) + '****' });
 
     wx.showLoading({ title: '验证中...' });
     try {
@@ -433,10 +419,10 @@ Page({
 
       let cardinfo = null;
       try {
-        let detail = await cardApi.getCardDetail(null, cardNumber.trim());
-        LOG('③ getCardDetail 原始响应', { hasDetail: !!detail, keys: detail ? Object.keys(detail) : [] });
+        const res = await cardApi.getCardDetail(null, cardNumber.trim());
+        const detail = cardApi.parseCardDetailResponse(res);
+        LOG('③ getCardDetail 会员卡详情 接口返回', detail != null ? JSON.stringify(detail) : 'null');
 
-        if (detail && detail.data && typeof detail.data === 'object') detail = detail.data;
         if (!detail || typeof detail !== 'object') {
           throw new Error('详情格式异常');
         }
@@ -448,34 +434,14 @@ Page({
 
         if (cleanCardPhone && cleanPhone !== cleanCardPhone) {
           wx.hideLoading();
-          LOG('③ 手机号不匹配，中断');
-          wx.showToast({ title: '电话号码与会员卡不匹配', icon: 'none' });
+          LOG('③ 手机号不相符，禁止绑卡');
+          wx.showToast({ title: '会员卡绑定手机号与当前登录手机号不一致，无法绑定', icon: 'none', duration: 3000 });
           return;
         }
 
-        const validity = detail.period || detail.validity || detail.validDate || detail.expireDate || detail.expire_time || detail.endDate || null;
-        const balanceVal = detail.balance ?? detail.money;
-        const pointsVal = detail.availableJifen ?? detail.points ?? detail.integral;
-        const discountVal = detail.discount != null && detail.discount !== '' ? detail.discount : null;
-        const discountDisplay = discountVal != null ? (() => {
-          const n = Number(discountVal);
-          return (Number.isInteger(n) ? n : n) + '%';
-        })() : null;
-        cardinfo = {
-          cardNumber: detail.cardNumber || cardNumber.trim(),
-          cardName: detail.cardLevel || detail.cardName || detail.levelName || '会员卡',
-          balance: balanceVal != null && balanceVal !== '' ? parseFloat(balanceVal) : null,
-          points: pointsVal != null && pointsVal !== '' ? parseInt(pointsVal, 10) : null,
-          minAddMoney: detail.minAddMoney != null && detail.minAddMoney !== '' ? parseFloat(detail.minAddMoney) : (detail.min_add_money != null ? parseFloat(detail.min_add_money) : null),
-          validity: validity != null && validity !== '' ? String(validity) : null,
-          discount: discountVal,
-          discountDisplay,
-          mobile: detail.mobile || null,
-          phone: phone,
-          giftCard: detail.giftCard || null,
-          priceInfo: detail.priceInfo || null
-        };
-        LOG('③ card_detail 解析成功，将写入 app.cardinfo', cardinfo);
+        cardinfo = cardApi.mergeCardDetailIntoCardinfo({ phone }, detail);
+        cardinfo.phone = phone;
+        LOG('③ card_detail 解析成功，将写入 app.cardinfo 会员卡详情', JSON.stringify(cardinfo));
       } catch (e) {
         LOG('③ getCardDetail 失败，使用 minimal', { err: e.message });
         cardinfo = {
@@ -527,7 +493,7 @@ Page({
 
       LOG('⑥ 执行 setData', { cardInfo: !!cardinfo, hasBoundCard: true });
       this.setData({
-        cardInfo: { ...cardinfo },
+        cardInfo: { ...cardinfo, cardStatusDisplay: cardApi.getCardStatusText(cardinfo.cardStatus) },
         hasBoundCard: true,
         cardNumber: '',
         cardPassword: ''
@@ -639,8 +605,8 @@ Page({
     let totalCents = Math.round(amount * 100);
     try {
       const detailRes = await cardApi.getCardDetail(cid, cardInfo.cardNumber);
-      const raw = detailRes?.data || detailRes;
-      const detail = raw && raw.data && typeof raw.data === 'object' ? raw.data : (raw && typeof raw === 'object' ? raw : {});
+      const detail = cardApi.parseCardDetailResponse(detailRes) || {};
+      console.log('[card-manage] _createRechargeOrderThenAgreement 会员卡详情', JSON.stringify(detail));
       const levelId = detail.levelId ?? detail.cardLevelId ?? null;
       const levelName = detail.cardLevel ?? detail.levelName ?? cardInfo.cardName ?? '会员卡';
       const cardBalance = detail.balance ?? detail.money ?? cardInfo.balance ?? 0;
@@ -783,31 +749,13 @@ Page({
     try {
       const res = await cardApi.getCardDetail(cid, cardInfo.cardNumber);
       const detail = cardApi.parseCardDetailResponse(res) || {};
-      const validity = detail.period || detail.validity || detail.validDate || detail.expireDate || detail.expire_time || detail.endDate || null;
-      const balanceVal = detail.balance ?? detail.money;
-      const pointsVal = detail.availableJifen ?? detail.points ?? detail.integral;
-      const discountVal = detail.discount != null && detail.discount !== '' ? detail.discount : null;
-      const discountDisplay = discountVal != null ? (() => {
-        const n = Number(discountVal);
-        return (Number.isInteger(n) ? n : n) + '%';
-      })() : null;
-      const updated = {
-        cardNumber: detail.cardNumber || detail.card_number || cardInfo.cardNumber,
-        cardName: detail.cardLevel || detail.cardName || detail.levelName || cardInfo.cardName || '会员卡',
-        balance: balanceVal != null && balanceVal !== '' ? parseFloat(balanceVal) : cardInfo.balance,
-        points: pointsVal != null && pointsVal !== '' ? parseInt(pointsVal, 10) : cardInfo.points,
-        minAddMoney: cardApi.getMinAddMoneyFromDetail(detail) ?? cardInfo.minAddMoney,
-        validity: validity != null && validity !== '' ? String(validity) : cardInfo.validity,
-        discount: discountVal != null ? discountVal : cardInfo.discount,
-        discountDisplay: discountDisplay || cardInfo.discountDisplay,
-        mobile: detail.mobile || null,
-        phone: cardInfo.phone
-      };
+      const updated = cardApi.mergeCardDetailIntoCardinfo(cardInfo, detail);
       app.globalData.cardinfo = updated;
       this.setData({
         cardInfo: { ...updated },
         hasBoundCard: true
       });
+      console.log('[card-manage] _refreshCardDetailThenSetState 会员卡详情已更新到 cardinfo', JSON.stringify(updated));
     } catch (e) {
       this._refreshCardInfo();
     }

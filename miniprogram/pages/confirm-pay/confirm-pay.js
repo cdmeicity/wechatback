@@ -67,6 +67,7 @@ Page({
   },
 
   onLoad(options) {
+    if (!auth.redirectToLoginIfNeeded()) return;
     const app = getApp();
     const gd = (app && app.globalData) || {};
     const order = gd.playOrder || null;
@@ -624,7 +625,7 @@ Page({
       if (outTradeNo) {
         this._startPayStatusPoll(outTradeNo);
       } else {
-        wx.redirectTo({ url: '/pages/order/order' });
+        wx.reLaunch({ url: '/pages/order/order' });
       }
     } catch (e) {
       wx.hideLoading();
@@ -703,15 +704,15 @@ Page({
     }
   },
 
-  /** 跳转影票详情页，始终携带 out_trade_no（优先用参数，否则用 orderData.out_trade_no） */
+  /** 跳转影票详情页，用 reLaunch 清空页面栈，防止用户返回到选座/支付页 */
   _redirectToTicketinfo(outTradeNoParam) {
     const no = (outTradeNoParam && String(outTradeNoParam).trim()) || (this.data.orderData && (this.data.orderData.out_trade_no || this.data.orderData.outTradeNo) && String(this.data.orderData.out_trade_no || this.data.orderData.outTradeNo).trim()) || '';
     if (!no) {
       wx.showToast({ title: '订单号缺失，请从订单列表查看', icon: 'none' });
-      wx.redirectTo({ url: '/pages/order/order' });
+      wx.reLaunch({ url: '/pages/order/order' });
       return;
     }
-    wx.redirectTo({ url: '/pages/ticketinfo/ticketinfo?out_trade_no=' + encodeURIComponent(no) });
+    wx.reLaunch({ url: '/pages/ticketinfo/ticketinfo?out_trade_no=' + encodeURIComponent(no) });
   },
 
   /** 支付成功后：轮询 cinema_order_list.pay_status，为 SUCCESS 时跳转 ticketinfo */
@@ -719,7 +720,7 @@ Page({
     const no = (outTradeNo && String(outTradeNo).trim()) || (this.data.orderData && (this.data.orderData.out_trade_no || this.data.orderData.outTradeNo) && String(this.data.orderData.out_trade_no || this.data.orderData.outTradeNo).trim()) || '';
     if (!no) {
       wx.showToast({ title: '订单号缺失，请从订单列表查看', icon: 'none' });
-      wx.redirectTo({ url: '/pages/order/order' });
+      wx.reLaunch({ url: '/pages/order/order' });
       return;
     }
     const self = this;

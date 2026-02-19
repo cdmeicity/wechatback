@@ -5,6 +5,7 @@
  */
 const supabase = require('../../utils/supabase');
 const dateHelper = require('../../utils/dateHelper');
+const auth = require('../../utils/auth.js');
 
 const IMAX_CINEMA_ID = '20006088';   // 排期表 v_meicity_cinema_play 用 cinema_id
 const IMAX_CINEMA_CODE = '13044301'; // 热映表 v_movie_week_sales_rank 用 cinema_code
@@ -40,10 +41,10 @@ Page({
     selectedShowtimePriceDetails: null,
     hallId: null,
     movieScrollLeft: 0,
-    showLoginModal: false,
     hasUser: false,
     loadingMovies: true,
-    errorMessage: null
+    errorMessage: null,
+    showGetPhoneModal: false
   },
 
   async onLoad() {
@@ -151,19 +152,18 @@ Page({
   },
 
   onShow() {
+    // 进入页只校验登录（token），不因无手机跳转；无手机留到点击排期时再弹获取手机号
+    const token = auth.getAccessToken();
+    const storedUser = auth.getUser();
+    if (!token || !storedUser) {
+      wx.showToast({ title: '请先登录', icon: 'none' });
+      wx.redirectTo({ url: '/pages/login/login' });
+      return;
+    }
     const app = getApp();
     const u = app?.globalData?.supabaseUser;
     const hasUser = !!(u && (u.id ?? u.userId ?? u.user_id));
     this.setData({ hasUser });
-  },
-
-  _showLoginModal() {
-    this.setData({ showLoginModal: true });
-  },
-
-  onLoginSuccess() {
-    this.setData({ showLoginModal: false, hasUser: true });
-    this._loadShowtimes();
   },
 
   _parseMovieCodes(val) {
@@ -175,6 +175,17 @@ Page({
 
   onBack() {
     wx.navigateBack();
+  },
+
+  onGetPhoneModalClose() {
+    this.setData({ showGetPhoneModal: false });
+  },
+
+  onGetPhoneModalSuccess() {
+    this.setData({ showGetPhoneModal: false });
+    const app = getApp();
+    const u = app?.globalData?.supabaseUser;
+    this.setData({ hasUser: !!(u && (u.id ?? u.userId ?? u.user_id)) });
   },
 
   /** 分享给好友 */
@@ -191,10 +202,6 @@ Page({
       title: 'IMAX 专场 - 美承影院',
       query: ''
     };
-  },
-
-  onLoginModalClose() {
-    this.setData({ showLoginModal: false });
   },
 
   onMovieTap(e) {
@@ -379,7 +386,13 @@ Page({
     const u = app.globalData.supabaseUser;
     const userId = (u && (u.id ?? u.userId ?? u.user_id)) || (typeof u === 'string' ? u : null);
     if (!userId) {
-      this._showLoginModal();
+      wx.redirectTo({ url: '/pages/login/login' });
+      return;
+    }
+    // 点击排期时再检测手机号：无手机则弹获取手机号，不进入选座
+    const phone = (u?.phone || u?.mobile || '').toString().trim();
+    if (!phone) {
+      this.setData({ showGetPhoneModal: true });
       return;
     }
     const playId = showtime.playId ?? showtime.id;
@@ -406,7 +419,7 @@ Page({
     const u = app.globalData.supabaseUser;
     const userId = (u && (u.id ?? u.userId ?? u.user_id)) || (typeof u === 'string' ? u : null);
     if (!userId) {
-      this._showLoginModal();
+      wx.redirectTo({ url: '/pages/login/login' });
       return;
     }
     let playId = selectedShowtime.playId ?? selectedShowtime.id;

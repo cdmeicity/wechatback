@@ -2,6 +2,6 @@
   "navigationBarTitleText": "选择场次",
   "navigationStyle": "custom",
   "usingComponents": {
-    "phone-login-modal": "/components/phone-login-modal/phone-login-modal"
+    "get-phone-modal": "/components/get-phone-modal/get-phone-modal"
   }
 }

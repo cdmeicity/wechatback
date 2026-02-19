@@ -1,5 +1,6 @@
 const supabase = require('../../utils/supabase.js');
 const noticeReadStorage = require('../../utils/noticeReadStorage.js');
+const auth = require('../../utils/auth.js');
 
 function formatTime(createdAt) {
   if (!createdAt) return '';
@@ -30,10 +31,12 @@ Page({
   },
 
   onLoad() {
+    if (!auth.redirectToLoginIfNeeded()) return;
     this._loadList();
   },
 
   onShow() {
+    if (!auth.redirectToLoginIfNeeded()) return;
     this._loadList();
   },
 

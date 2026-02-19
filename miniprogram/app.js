@@ -60,6 +60,13 @@ App({
       this.globalData.userinfo = null;
       this.globalData.cardinfo = null;
       this.globalData.sessionReady = true;
+      // 已退出登录，除登录页外都跳转登录页
+      const pages = getCurrentPages();
+      const cur = pages.length > 0 ? pages[pages.length - 1] : null;
+      const route = cur && cur.route ? cur.route : '';
+      if (route !== 'pages/login/login' && route !== 'pages/bind-phone/bind-phone') {
+        setTimeout(() => { wx.redirectTo({ url: '/pages/login/login' }); }, 80);
+      }
       return;
     }
 
@@ -108,26 +115,9 @@ App({
               const res = await cardApi.getCardDetail(cid, cardinfo.cardNumber);
               const detail = cardApi.parseCardDetailResponse(res);
               if (detail) {
-                const validity = detail.period || detail.validity || detail.validDate || detail.expireDate || detail.expire_time || detail.endDate || null;
-                const balanceVal = detail.balance ?? detail.money;
-                const pointsVal = detail.availableJifen ?? detail.points ?? detail.integral;
-                const discountVal = detail.discount != null && detail.discount !== '' ? detail.discount : null;
-                const n = discountVal != null ? Number(discountVal) : NaN;
-                const discountDisplay = !isNaN(n) ? (n + '%') : null;
-                cardinfo = {
-                  cardNumber: detail.cardNumber || detail.card_number || cardinfo.cardNumber,
-                  cardName: detail.cardLevel || detail.cardName || detail.levelName || cardinfo.cardName || '会员卡',
-                  balance: balanceVal != null && balanceVal !== '' ? parseFloat(balanceVal) : cardinfo.balance,
-                  points: pointsVal != null && pointsVal !== '' ? parseInt(pointsVal, 10) : cardinfo.points,
-                  minAddMoney: cardApi.getMinAddMoneyFromDetail(detail) ?? cardinfo.minAddMoney,
-                  validity: validity != null && validity !== '' ? String(validity) : cardinfo.validity,
-                  discount: discountVal != null ? discountVal : cardinfo.discount,
-                  discountDisplay: discountDisplay || cardinfo.discountDisplay,
-                  mobile: detail.mobile || null,
-                  phone: cardinfo.phone
-                };
+                cardinfo = cardApi.mergeCardDetailIntoCardinfo(cardinfo, detail);
                 this.globalData.cardinfo = cardinfo;
-                LOG('③ 已用 card_detail 更新 cardinfo');
+                LOG('③ 已用 card_detail 更新 cardinfo，会员卡详情', JSON.stringify(cardinfo));
               }
             }
           } catch (e) {
@@ -140,9 +130,29 @@ App({
       LOG('④ sessionReady=true');
       const pages = getCurrentPages();
       const cur = pages.length > 0 ? pages[pages.length - 1] : null;
+      const route = cur && cur.route ? cur.route : '';
+      const isLoginPage = route === 'pages/login/login' || route === 'pages/bind-phone/bind-phone';
+
       if (cur && cur.route === 'pages/index/index' && typeof cur._refreshAppCardInfo === 'function') {
         cur._refreshAppCardInfo();
         LOG('④ 已通知首页刷新 cardinfo');
+      }
+
+      // 除登录页外：仅未静默登录（无 token）时跳转登录页；无手机不跳转，留到排期/订单/我的页再弹获取手机号
+      if (!isLoginPage) {
+        const noToken = !token;
+        const noUser = !this.globalData.supabaseUser;
+        if (noToken || noUser) {
+          LOG('④ 未登录，跳转登录页', { noToken, noUser });
+          setTimeout(() => {
+            const pages = getCurrentPages();
+            const cur = pages.length > 0 ? pages[pages.length - 1] : null;
+            const r = cur && cur.route ? cur.route : '';
+            if (r !== 'pages/login/login' && r !== 'pages/bind-phone/bind-phone') {
+              wx.redirectTo({ url: '/pages/login/login' });
+            }
+          }, 80);
+        }
       }
     } catch (err) {
       const msg = (err && err.message) || String(err);
@@ -151,6 +161,15 @@ App({
       this.globalData.userinfo = null;
       this.globalData.cardinfo = null;
       this.globalData.sessionReady = true;
+      // 静默登录失败时也要跳转登录页（除已在登录页外）
+      const pages = getCurrentPages();
+      const cur = pages.length > 0 ? pages[pages.length - 1] : null;
+      const route = cur && cur.route ? cur.route : '';
+      if (route !== 'pages/login/login' && route !== 'pages/bind-phone/bind-phone') {
+        setTimeout(() => {
+          wx.redirectTo({ url: '/pages/login/login' });
+        }, 80);
+      }
     }
   }
 });

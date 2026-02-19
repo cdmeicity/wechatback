@@ -1,10 +1,4 @@
 <view class="order-page light-theme">
-  <!-- 登录弹窗：userinfo 为空时弹出 -->
-  <phone-login-modal
-    show="{{showLoginModal}}"
-    bind:close="onLoginModalClose"
-    bind:success="onLoginSuccess"
-  />
   <!-- Tab 栏 -->
   <view class="tab-bar">
     <view
@@ -94,4 +88,11 @@
       </view>
     </block>
   </scroll-view>
+
+  <!-- 点击导航进入时若无手机则弹窗，取消授权则跳首页 -->
+  <get-phone-modal
+    show="{{showGetPhoneModal}}"
+    bind:close="onGetPhoneModalClose"
+    bind:success="onGetPhoneModalSuccess"
+  />
 </view>

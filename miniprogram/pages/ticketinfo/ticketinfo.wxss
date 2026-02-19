@@ -331,12 +331,41 @@ page {
   text-align: center;
 }
 
-/* 底部公司名 */
+/* 底部：操作按钮 + 公司名 */
 .ticketinfo-footer {
   padding: var(--space-medium) var(--space-large);
   padding-bottom: calc(var(--space-medium) + env(safe-area-inset-bottom));
   text-align: center;
   background: #DC143C;
+}
+
+.ticketinfo-footer-btns {
+  display: flex;
+  gap: var(--space-medium);
+  justify-content: center;
+  margin-bottom: var(--space-medium);
+}
+
+.ticketinfo-footer-btn {
+  flex: 1;
+  max-width: 280rpx;
+  height: var(--height-button);
+  line-height: var(--height-button);
+  font-size: var(--font-button);
+  font-weight: 600;
+  border-radius: var(--radius-medium);
+  text-align: center;
+}
+
+.ticketinfo-footer-btn-primary {
+  background: #fff;
+  color: #DC143C;
+}
+
+.ticketinfo-footer-btn-secondary {
+  background: rgba(255,255,255,0.3);
+  color: #fff;
+  border: 2rpx solid #fff;
 }
 
 .ticketinfo-footer-text {

@@ -15,6 +15,10 @@ Page({
     submitting: false
   },
 
+  onShow() {
+    if (!auth.redirectToLoginIfNeeded()) return;
+  },
+
   onTitleInput(e) {
     this.setData({ title: (e.detail && e.detail.value) || '' });
   },

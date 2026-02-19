@@ -1,7 +1,1 @@
-{
-  "navigationBarTitleText": "IMAX",
-  "navigationStyle": "custom",
-  "usingComponents": {
-    "phone-login-modal": "/components/phone-login-modal/phone-login-modal"
-  }
-}
+{"navigationBarTitleText":"IMAX","navigationStyle":"custom","usingComponents":{"get-phone-modal":"/components/get-phone-modal/get-phone-modal"}}

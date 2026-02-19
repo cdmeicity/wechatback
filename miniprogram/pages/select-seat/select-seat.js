@@ -1,4 +1,5 @@
 const supabase = require('../../utils/supabase');
+const auth = require('../../utils/auth.js');
 
 Page({
   data: {
@@ -9,6 +10,7 @@ Page({
   },
 
   onLoad(options) {
+    if (!auth.redirectToLoginIfNeeded()) return;
     const scheduleId = options.scheduleId;
     if (scheduleId) this.loadSeats(scheduleId);
   },

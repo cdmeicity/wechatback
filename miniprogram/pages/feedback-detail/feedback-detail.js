@@ -4,6 +4,7 @@
  */
 const supabase = require('../../utils/supabase.js');
 const dateHelper = require('../../utils/dateHelper.js');
+const auth = require('../../utils/auth.js');
 
 Page({
   data: {
@@ -14,6 +15,7 @@ Page({
   },
 
   onLoad(options) {
+    if (!auth.redirectToLoginIfNeeded()) return;
     const id = (options && options.id) ? String(options.id).trim() : '';
     if (!id) {
       this.setData({ loading: false });

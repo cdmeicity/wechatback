@@ -4,6 +4,7 @@
  */
 const supabase = require('../../utils/supabase.js');
 const couponApi = require('../../utils/couponApi.js');
+const auth = require('../../utils/auth.js');
 
 Page({
   data: {
@@ -12,11 +13,7 @@ Page({
   },
 
   onLoad() {
-    const userId = this._getUserId();
-    if (!userId) {
-      wx.showToast({ title: '请先登录', icon: 'none' });
-      setTimeout(() => wx.navigateBack({ fail: () => wx.switchTab({ url: '/pages/user/user' }) }), 1500);
-    }
+    if (!auth.redirectToLoginIfNeeded()) return;
   },
 
   /** 优先从 app.globalData.userinfo 取，否则从 supabaseUser 取 */

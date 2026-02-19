@@ -376,6 +376,23 @@ const supabase = {
   },
 
   /**
+   * 查询视图 v_card_day_buy_number：按卡号+日期取当日已购数量
+   * @param {string} cardNumber - 会员卡号
+   * @param {string} buyDay - 日期 YYYY-MM-DD（与 orderData.start_time 的日期一致）
+   * @returns {Promise<number>} 当日已购数量 buy_num，无记录或异常时返回 0
+   */
+  getCardDayBuyNum(cardNumber, buyDay) {
+    if (!cardNumber || !buyDay) return Promise.resolve(0);
+    const path = `/v_card_day_buy_number?card_number=eq.${encodeURIComponent(String(cardNumber))}&buy_day=eq.${encodeURIComponent(String(buyDay))}&select=buy_num&limit=1`;
+    return request(path)
+      .then((arr) => {
+        if (Array.isArray(arr) && arr.length > 0 && arr[0].buy_num != null) return Number(arr[0].buy_num);
+        return 0;
+      })
+      .catch(() => 0);
+  },
+
+  /**
    * 绑定会员卡到 user_member_cards（upsert，user_id 唯一）
    */
   bindMemberCard: (userId, cardinfo) => {

@@ -86,6 +86,14 @@ Page({
   },
 
   onShow() {
+    // 仅无 token 时跳转登录页；无手机不跳转，留到排期/订单/我的页再弹获取手机号
+    const token = auth.getAccessToken();
+    const storedUser = auth.getUser();
+    if (!token || !storedUser) {
+      wx.showToast({ title: '请先登录', icon: 'none' });
+      wx.redirectTo({ url: '/pages/login/login' });
+      return;
+    }
     const app = getApp();
     const gd = app.globalData || {};
     const u = gd.supabaseUser;
@@ -234,28 +242,9 @@ Page({
       const res = await cardApi.getCardDetail(cid, bindCard.cardNumber);
       const detail = cardApi.parseCardDetailResponse(res);
       if (!detail || typeof detail !== 'object') return;
-      const validity = detail.period || detail.validity || detail.validDate || detail.expireDate || detail.expire_time || detail.endDate || null;
-      const balanceVal = detail.balance ?? detail.money;
-      const pointsVal = detail.availableJifen ?? detail.points ?? detail.integral;
-      const discountVal = detail.discount != null && detail.discount !== '' ? detail.discount : null;
-      const discountDisplay = discountVal != null ? (() => {
-        const n = Number(discountVal);
-        return (Number.isInteger(n) ? n : n) + '%';
-      })() : null;
-      const cardinfo = {
-        cardNumber: detail.cardNumber || detail.card_number || bindCard.cardNumber,
-        cardName: detail.cardLevel || detail.cardName || detail.levelName || bindCard.cardName || '会员卡',
-        balance: balanceVal != null && balanceVal !== '' ? parseFloat(balanceVal) : bindCard.balance,
-        points: pointsVal != null && pointsVal !== '' ? parseInt(pointsVal, 10) : bindCard.points,
-        minAddMoney: cardApi.getMinAddMoneyFromDetail(detail) ?? bindCard.minAddMoney,
-        validity: validity != null && validity !== '' ? String(validity) : bindCard.validity,
-        discount: discountVal != null ? discountVal : bindCard.discount,
-        discountDisplay: discountDisplay || bindCard.discountDisplay,
-        mobile: detail.mobile || null,
-        phone: bindCard.phone
-      };
+      const cardinfo = cardApi.mergeCardDetailIntoCardinfo(bindCard, detail);
       app.globalData.cardinfo = cardinfo;
-      console.log('[主页] 已刷新 app.cardinfo', { cardNumber: cardinfo.cardNumber, balance: cardinfo.balance, minAddMoney: cardinfo.minAddMoney });
+      console.log('[主页] 会员卡详情已更新到 cardinfo', JSON.stringify(cardinfo));
     } catch (e) {
       console.warn('[主页] _refreshAppCardInfo 失败', e);
     }
@@ -365,7 +354,8 @@ Page({
       const hot = results[0] || [];
       const future = results[1] || [];
       const today = new Date().toISOString().slice(0, 10);
-      const hotFiltered = hot.filter(m => (m.release_date || '') <= today);
+      const hotFiltered = hot.filter(m => (m.release_date || '') <= today)
+        .sort((a, b) => (b.playdate || b.playDate || '').localeCompare(a.playdate || a.playDate || ''));
       if (app && app.globalData) {
         app.globalData.hotMovies = hotFiltered.slice();
       }

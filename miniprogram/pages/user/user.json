@@ -2,5 +2,7 @@
   "navigationBarTitleText": "个人中心",
   "navigationBarBackgroundColor": "#FE4A49",
   "navigationBarTextStyle": "white",
-  "usingComponents": {}
+  "usingComponents": {
+    "get-phone-modal": "/components/get-phone-modal/get-phone-modal"
+  }
 }

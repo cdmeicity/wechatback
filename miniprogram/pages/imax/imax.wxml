@@ -127,11 +127,6 @@
     </view>
     </block>
   </scroll-view>
-  <phone-login-modal
-    show="{{showLoginModal}}"
-    bind:close="onLoginModalClose"
-    bind:success="onLoginSuccess"
-  />
   </view>
 
   <!-- 底部按钮 -->
@@ -140,4 +135,11 @@
   </view>
 
   </block>
+
+  <!-- 点击排期时若无手机则弹窗 -->
+  <get-phone-modal
+    show="{{showGetPhoneModal}}"
+    bind:close="onGetPhoneModalClose"
+    bind:success="onGetPhoneModalSuccess"
+  />
 </view>

@@ -29,22 +29,39 @@ Page({
   data: {
     currentTab: 0,
     allOrders: [],
-    showLoginModal: false,
     displayOrders: [],
     loading: true,
-    currentUserPhone: null
+    currentUserPhone: null,
+    showGetPhoneModal: false
   },
 
   onLoad() {
+    const token = auth.getAccessToken();
+    const storedUser = auth.getUser();
+    if (!token || !storedUser) {
+      wx.showToast({ title: '请先登录', icon: 'none' });
+      wx.redirectTo({ url: '/pages/login/login' });
+      return;
+    }
+    const phone = (storedUser.phone || storedUser.mobile || '').toString().trim();
+    if (!phone) {
+      this.setData({ showGetPhoneModal: true });
+      return;
+    }
     this._loadOrders();
   },
 
   onShow() {
-    const app = getApp();
-    const { sessionReady, supabaseUser } = app?.globalData || {};
-    if (!sessionReady) return;
-    if (supabaseUser == null) {
-      this.setData({ showLoginModal: true });
+    const token = auth.getAccessToken();
+    const storedUser = auth.getUser();
+    if (!token || !storedUser) {
+      wx.showToast({ title: '请先登录', icon: 'none' });
+      wx.redirectTo({ url: '/pages/login/login' });
+      return;
+    }
+    const phone = (storedUser.phone || storedUser.mobile || '').toString().trim();
+    if (!phone) {
+      this.setData({ showGetPhoneModal: true });
       return;
     }
     if (this.data.allOrders.length > 0) {
@@ -52,12 +69,13 @@ Page({
     }
   },
 
-  onLoginModalClose() {
-    this.setData({ showLoginModal: false });
+  onGetPhoneModalClose() {
+    this.setData({ showGetPhoneModal: false });
+    wx.reLaunch({ url: '/pages/index/index' });
   },
 
-  onLoginSuccess() {
-    this.setData({ showLoginModal: false });
+  onGetPhoneModalSuccess() {
+    this.setData({ showGetPhoneModal: false });
     this._loadOrders();
   },
 

@@ -34,6 +34,7 @@
           <text class="card-number">卡号：{{cardInfo.cardNumber}}</text>
           <text wx:if="{{cardInfo.balance != null}}" class="card-meta">余额：¥{{cardInfo.balance}}</text>
           <text wx:if="{{cardInfo.points != null}}" class="card-meta">积分：{{cardInfo.points}}</text>
+          <text class="card-meta">状态：{{cardInfo.cardStatusDisplay || '该字段尚未生效'}}</text>
         </view>
         <text class="card-arrow">›</text>
       </view>
@@ -90,4 +91,11 @@
       </view>
     </view>
   </view>
+
+  <!-- 点击导航进入时若无手机则弹窗，取消授权则跳首页 -->
+  <get-phone-modal
+    show="{{showGetPhoneModal}}"
+    bind:close="onGetPhoneModalClose"
+    bind:success="onGetPhoneModalSuccess"
+  />
 </view>

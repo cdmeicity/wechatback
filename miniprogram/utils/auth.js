@@ -51,7 +51,34 @@ function requestLogin(code) {
   });
 }
 
+/**
+ * 除登录页、bind-phone 外，各页 onShow/onLoad 调用：未登录或未绑定手机号则提示并跳转登录页
+ * @returns {boolean} true=已登录且已绑手机，可继续；false=已跳转登录页，应 return
+ */
+function redirectToLoginIfNeeded() {
+  try {
+    const app = getApp();
+    const { sessionReady, supabaseUser } = app?.globalData || {};
+    if (!sessionReady) return true;
+    if (supabaseUser == null) {
+      wx.showToast({ title: '请先登录', icon: 'none' });
+      wx.redirectTo({ url: '/pages/login/login' });
+      return false;
+    }
+    const phone = (supabaseUser.phone || supabaseUser.mobile || '').toString().trim();
+    if (!phone) {
+      wx.showToast({ title: '请先绑定手机号', icon: 'none' });
+      wx.redirectTo({ url: '/pages/login/login' });
+      return false;
+    }
+    return true;
+  } catch (e) {
+    return true;
+  }
+}
+
 module.exports = {
+  redirectToLoginIfNeeded,
   getAccessToken() {
     return wx.getStorageSync(STORAGE_ACCESS_TOKEN) || null;
   },
@@ -293,6 +320,90 @@ module.exports = {
         }
       });
     });
+  },
+
+  /**
+   * 微信 getPhoneNumber 一键绑定：把 code 发后端，后端解密手机号并更新 users.phone，返回 user
+   * 后端：POST /auth/wechat-mp/bind-phone，Header: Authorization: Bearer <token>，Body: { code }
+   * 返回：{ access_token?, user: { id, phone, ... } }
+   */
+  bindPhoneWithWechatCode(code) {
+    const LOG = (msg, data) => console.log('[bind-phone]', msg, data !== undefined ? data : '');
+    const token = wx.getStorageSync(STORAGE_ACCESS_TOKEN);
+    if (!token) return Promise.reject(new Error('请先完成微信静默登录'));
+    const c = String(code || '').trim();
+    if (!c) return Promise.reject(new Error('未获取到手机号授权 code'));
+    const base = getAppSafe()?.globalData?.authBaseUrl || this.BASE_URL;
+    const url = `${base.replace(/\/$/, '')}/auth/wechat-mp/bind-phone`;
+    LOG('请求', { url, codePrefix: c.slice(0, 8) + '...' });
+    return new Promise((resolve, reject) => {
+      wx.request({
+        url,
+        method: 'POST',
+        header: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        data: { code: c },
+        success(res) {
+          if (res.statusCode === 200) {
+            const d = res.data;
+            LOG('成功', { hasUser: !!d.user, userId: d.user?.id });
+            if (d.user) wx.setStorageSync(STORAGE_USER, d.user);
+            if (d.access_token) wx.setStorageSync(STORAGE_ACCESS_TOKEN, d.access_token);
+            wx.setStorageSync(STORAGE_NEED_PHONE, false);
+            try {
+              const app = getAppSafe();
+              if (app && app.globalData && d.access_token) app.globalData.accessToken = d.access_token;
+            } catch (e) {}
+            resolve(d);
+          } else {
+            LOG('失败', { status: res.statusCode, data: res.data });
+            reject(new Error(res.data?.message || res.data?.error || '绑定手机号失败'));
+          }
+        },
+        fail(err) {
+          LOG('请求异常', err);
+          reject(toError(err));
+        }
+      });
+    });
+  },
+
+  /**
+   * 绑定手机号成功后的统一更新：写 globalData.supabaseUser/userinfo、setPhoneLoginDone、拉取并写 cardinfo
+   * 供登录页与 get-phone-modal 共用，不包含跳转或 Toast
+   */
+  async applyBindPhoneResult(data) {
+    const app = getAppSafe();
+    const user = data.user || this.getUser();
+    if (!user) return;
+    const userId = user.id ?? user.user_id ?? user.userId ?? null;
+    const userPhone = (user.phone || user.mobile || data.phone || data.purePhoneNumber || '').toString().trim() || null;
+    const supabaseUser = {
+      id: userId,
+      userId,
+      user_id: userId,
+      phone: userPhone,
+      ...user
+    };
+    if (app && app.globalData) {
+      app.globalData.supabaseUser = supabaseUser;
+      app.globalData.userinfo = supabaseUser;
+      app.globalData.manualLogout = false;
+    }
+    this.setPhoneLoginDone();
+    if (userId) {
+      try {
+        const supabase = require('./supabase.js');
+        const cardinfo = await supabase.getUserMemberCard(userId);
+        if (app && app.globalData) app.globalData.cardinfo = cardinfo || null;
+      } catch (e) {
+        if (app && app.globalData) app.globalData.cardinfo = null;
+      }
+    } else if (app && app.globalData) {
+      app.globalData.cardinfo = null;
+    }
   },
 
   /**

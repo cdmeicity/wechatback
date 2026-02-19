@@ -1,0 +1,44 @@
+<!-- 微信手机号授权弹窗：与登录页一致的协议勾选 + getPhoneNumber 按钮 -->
+<view class="get-phone-mask" wx:if="{{show}}" catchtouchmove="preventTouch">
+  <view class="get-phone-modal" catchtouchmove="preventTouch">
+    <view class="get-phone-close" bindtap="onClose" catchtap="onClose">
+      <text class="get-phone-close-icon">×</text>
+    </view>
+    <view class="get-phone-header">
+      <text class="get-phone-title">绑定手机号</text>
+      <text class="get-phone-desc">授权手机号以继续使用</text>
+    </view>
+    <view class="get-phone-body">
+      <!-- 未勾选协议时点击：先弹窗，同意后勾选，需再次点击按钮才能调起授权 -->
+      <button
+        wx:if="{{!agreedToTerms}}"
+        class="get-phone-btn"
+        bindtap="onAgreementRequired"
+      >
+        手机号快捷登录
+      </button>
+      <button
+        wx:else
+        class="get-phone-btn"
+        open-type="getPhoneNumber"
+        bindgetphonenumber="onGetPhoneNumber"
+      >
+        手机号快捷登录
+      </button>
+
+      <view class="get-phone-agree-row">
+        <view class="get-phone-checkbox {{agreedToTerms ? 'checked' : ''}}" bindtap="onAgreeChange">
+          <text wx:if="{{agreedToTerms}}" class="get-phone-checkbox-tick">✓</text>
+        </view>
+        <text class="get-phone-tip">登录即表示同意</text>
+        <navigator class="get-phone-link" url="/pages/agreement-service/agreement-service" open-type="navigate">《用户服务协议》</navigator>
+        <text class="get-phone-tip">和</text>
+        <navigator class="get-phone-link" url="/pages/agreement-privacy/agreement-privacy" open-type="navigate">《隐私政策》</navigator>
+      </view>
+
+      <view wx:if="{{showDenyTip}}" class="get-phone-deny-tip">
+        <text>需要授权手机号才能继续，请点击上方按钮</text>
+      </view>
+    </view>
+  </view>
+</view>

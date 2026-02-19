@@ -1,0 +1,15 @@
+<!-- 登录页：仅微信静默登录 + Supabase 静默登录，完成后跳主页；获取手机号改到排期/订单/我的页 -->
+<view class="login-page">
+  <view class="login-header">
+    <text class="login-title">欢迎使用美承影院</text>
+    <text class="login-desc">正在登录...</text>
+  </view>
+
+  <view class="login-body" wx:if="{{loading}}">
+    <text class="login-loading-text">静默登录中，请稍候</text>
+  </view>
+
+  <view class="login-footer">
+    <text class="login-footer-text">承德美承影业有限公司</text>
+  </view>
+</view>

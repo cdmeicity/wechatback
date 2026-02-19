@@ -147,25 +147,9 @@ Component({
                 const res = await cardApi.getCardDetail(cid, cardinfo.cardNumber);
                 const detail = cardApi.parseCardDetailResponse(res);
                 if (detail) {
-                  const validity = detail.period || detail.validity || detail.validDate || detail.expireDate || detail.expire_time || detail.endDate || null;
-                  const balanceVal = detail.balance ?? detail.money;
-                  const pointsVal = detail.availableJifen ?? detail.points ?? detail.integral;
-                  const discountVal = detail.discount != null && detail.discount !== '' ? detail.discount : null;
-                  const n = discountVal != null ? Number(discountVal) : NaN;
-                  const discountDisplay = !isNaN(n) ? (n + '%') : null;
-                  cardinfo = {
-                    cardNumber: detail.cardNumber || detail.card_number || cardinfo.cardNumber,
-                    cardName: detail.cardLevel || detail.cardName || detail.levelName || cardinfo.cardName || '会员卡',
-                    balance: balanceVal != null && balanceVal !== '' ? parseFloat(balanceVal) : cardinfo.balance,
-                    points: pointsVal != null && pointsVal !== '' ? parseInt(pointsVal, 10) : cardinfo.points,
-                    minAddMoney: cardApi.getMinAddMoneyFromDetail(detail) ?? cardinfo.minAddMoney,
-                    validity: validity != null && validity !== '' ? String(validity) : cardinfo.validity,
-                    discount: discountVal != null ? discountVal : cardinfo.discount,
-                    discountDisplay: discountDisplay || cardinfo.discountDisplay,
-                    mobile: detail.mobile || null,
-                    phone: cardinfo.phone
-                  };
+                  cardinfo = cardApi.mergeCardDetailIntoCardinfo(cardinfo, detail);
                   app.globalData.cardinfo = cardinfo;
+                  console.log('[phone-login-modal] 会员卡详情已更新到 cardinfo', JSON.stringify(cardinfo));
                 }
               }
             } catch (e) {

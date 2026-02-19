@@ -1,5 +1,6 @@
 const supabase = require('../../utils/supabase.js');
 const noticeReadStorage = require('../../utils/noticeReadStorage.js');
+const auth = require('../../utils/auth.js');
 
 function formatTime(createdAt) {
   if (!createdAt) return '';
@@ -23,6 +24,7 @@ Page({
   },
 
   onLoad(options) {
+    if (!auth.redirectToLoginIfNeeded()) return;
     const id = options?.id;
     if (!id) {
       wx.showToast({ title: '无效的通知', icon: 'none' });

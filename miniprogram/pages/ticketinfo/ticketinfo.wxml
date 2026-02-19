@@ -223,6 +223,10 @@
   </view>
 
   <view class="ticketinfo-footer">
+    <view class="ticketinfo-footer-btns">
+      <view class="ticketinfo-footer-btn ticketinfo-footer-btn-primary" bindtap="onGoHome">返回首页</view>
+      <view class="ticketinfo-footer-btn ticketinfo-footer-btn-secondary" bindtap="onGoOrder">我的订单</view>
+    </view>
     <text class="ticketinfo-footer-text">承德美承影业有限公司</text>
   </view>
 </view>

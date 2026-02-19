@@ -3,6 +3,7 @@
  * 与 Flutter MovieSearchPage 逻辑一致，遵循 VI 规范
  */
 const supabase = require('../../utils/supabase.js');
+const auth = require('../../utils/auth.js');
 
 Page({
   data: {
@@ -17,6 +18,7 @@ Page({
   },
 
   onShow() {
+    if (!auth.redirectToLoginIfNeeded()) return;
     this._syncFromGlobal();
   },
 
@@ -65,7 +67,8 @@ Page({
       .then((list) => {
         const arr = list || [];
         const today = new Date().toISOString().slice(0, 10);
-        const hotFiltered = arr.filter((m) => (m.release_date || '') <= today);
+        const hotFiltered = arr.filter((m) => (m.release_date || '') <= today)
+          .sort((a, b) => (b.playdate || b.playDate || '').localeCompare(a.playdate || a.playDate || ''));
         if (app.globalData) app.globalData.hotMovies = hotFiltered.slice();
         this.setData({ hotMovies: hotFiltered }, () => this._applyFilter());
       })

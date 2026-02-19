@@ -1,4 +1,5 @@
 const auth = require('../../utils/auth.js');
+const cardApi = require('../../utils/cardApi.js');
 
 Page({
   data: {
@@ -7,6 +8,7 @@ Page({
     avatarUrl: '',
     cardInfo: null,
     isLoggedIn: false,
+    showGetPhoneModal: false,
     categoryCards: [
       { name: '卡券管理', icon: '/images/icon-gift-card.svg' },
       { name: '问题反馈', icon: '/images/icon-users.svg' }
@@ -27,9 +29,29 @@ Page({
   },
 
   onShow() {
-    const app = getApp();
-    const { sessionReady } = app?.globalData || {};
-    if (!sessionReady) return;
+    const token = auth.getAccessToken();
+    const storedUser = auth.getUser();
+    if (!token || !storedUser) {
+      wx.showToast({ title: '请先登录', icon: 'none' });
+      wx.redirectTo({ url: '/pages/login/login' });
+      return;
+    }
+    const phone = (storedUser.phone || storedUser.mobile || '').toString().trim();
+    if (!phone) {
+      this.setData({ showGetPhoneModal: true });
+      this.refreshUser();
+      return;
+    }
+    this.refreshUser();
+  },
+
+  onGetPhoneModalClose() {
+    this.setData({ showGetPhoneModal: false });
+    wx.reLaunch({ url: '/pages/index/index' });
+  },
+
+  onGetPhoneModalSuccess() {
+    this.setData({ showGetPhoneModal: false });
     this.refreshUser();
   },
 
@@ -43,11 +65,15 @@ Page({
     const phone = u?.phone || u?.mobile || '';
     const avatarUrl = u?.avatar || u?.avatarUrl || '';
 
+    const cardInfo = cardinfo ? {
+      ...cardinfo,
+      cardStatusDisplay: cardApi.getCardStatusText(cardinfo.cardStatus)
+    } : null;
     this.setData({
       nickname,
       phone,
       avatarUrl,
-      cardInfo: cardinfo,
+      cardInfo,
       isLoggedIn: u != null
     });
   },
@@ -132,9 +158,9 @@ Page({
     wx.hideLoading();
     wx.showToast({ title: '已退出登录', icon: 'success' });
     this.refreshUser();
-    // 退出登录后跳转到主页
+    // 退出登录后跳转到登录页
     setTimeout(() => {
-      wx.reLaunch({ url: '/pages/index/index' });
+      wx.reLaunch({ url: '/pages/login/login' });
     }, 500);
   },
 

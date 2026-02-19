@@ -140,6 +140,10 @@
               <text class="card-face-label">积分</text>
               <text class="card-face-value">{{cardInfo.points != null ? cardInfo.points : '--'}}</text>
             </view>
+            <view class="card-face-row">
+              <text class="card-face-label">状态</text>
+              <text class="card-face-value">{{cardInfo.cardStatusDisplay || '该字段尚未生效'}}</text>
+            </view>
             <view wx:if="{{cardInfo.discount != null && cardInfo.discount !== ''}}" class="card-face-row">
               <text class="card-face-label">折扣</text>
               <text class="card-face-value">{{cardInfo.discountDisplay || cardInfo.discount + '%'}}</text>

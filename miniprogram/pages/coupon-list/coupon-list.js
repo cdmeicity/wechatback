@@ -35,10 +35,12 @@ Page({
   },
 
   onLoad() {
+    if (!auth.redirectToLoginIfNeeded()) return;
     this._checkAndLoad();
   },
 
   onShow() {
+    if (!auth.redirectToLoginIfNeeded()) return;
     this._checkAndLoad();
   },
 

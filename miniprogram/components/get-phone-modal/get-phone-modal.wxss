@@ -124,6 +124,7 @@
   color: #FE4A49;
   text-decoration: underline;
   margin: 0 4rpx;
+  padding: 8rpx 4rpx;
 }
 
 .get-phone-deny-tip {

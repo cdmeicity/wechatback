@@ -59,6 +59,7 @@ App({
       this.globalData.supabaseUser = null;
       this.globalData.userinfo = null;
       this.globalData.cardinfo = null;
+      this.globalData.wxProfile = null;
       this.globalData.sessionReady = true;
       // 已退出登录，除登录页外都跳转登录页
       const pages = getCurrentPages();

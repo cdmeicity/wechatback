@@ -1,12 +1,20 @@
-<!-- 登录页：仅微信静默登录 + Supabase 静默登录，完成后跳主页；获取手机号改到排期/订单/我的页 -->
+<!-- 登录页：微信静默登录 + 验证手机号，完成后跳主页 -->
 <view class="login-page">
   <view class="login-header">
     <text class="login-title">欢迎使用美承影院</text>
-    <text class="login-desc">正在登录...</text>
+    <text class="login-desc" wx:if="{{!needManualLogin}}">正在登录...</text>
+    <text class="login-desc" wx:elif="{{needManualLogin}}">请完成微信静默登录并验证手机号</text>
   </view>
 
   <view class="login-body" wx:if="{{loading}}">
     <text class="login-loading-text">静默登录中，请稍候</text>
+  </view>
+
+  <view class="login-body login-manual" wx:if="{{needManualLogin && !loading}}">
+    <text class="login-manual-tip">您已退出登录，使用前请重新完成：</text>
+    <text class="login-manual-item">1. 微信静默登录</text>
+    <text class="login-manual-item">2. 验证手机号码</text>
+    <button class="login-btn-start" bindtap="onStartLogin">开始登录</button>
   </view>
 
   <view class="login-footer">

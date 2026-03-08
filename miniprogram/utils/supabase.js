@@ -73,13 +73,18 @@ function ping() {
 }
 
 // RPC 调用：rpc_calc_ticket_price_tx（带用户身份算价，tx 为可写事务版本）
-// 入参：p_play_id, p_user_id, p_channel_code(可选), p_sale_stage(可选)；返回数组，首项含 final_price
+// 入参：p_play_id, p_user_id, p_channel_appid(微信小程序 appid，通过 price_app_channel 解析渠道), p_sale_stage(可选)；返回数组，首项含 final_price
 // 鉴权：统一用 anon key。用户身份通过 body 的 p_user_id 传递，RPC 内部按用户算价；避免用自建登录 token 导致 401（Supabase 只认自家 JWT）
 function rpcCalcTicketPrice(playId, userId, opts) {
   const { url, key } = getConfig();
-  const { channelCode = 'wechat', saleStage = 'normal' } = opts || {};
+  const { saleStage = 'normal' } = opts || {};
   const fullUrl = `${url.replace(/\/$/, '')}/rest/v1/rpc/rpc_calc_ticket_price_tx`;
-  const body = { p_play_id: playId, p_user_id: userId, p_channel_code: channelCode, p_sale_stage: saleStage };
+  const body = {
+    p_play_id: playId,
+    p_user_id: userId,
+    p_channel_appid: 'wx46e9e8119f9686a4',
+    p_sale_stage: saleStage
+  };
   console.log('[supabase][rpc_calc_ticket_price_tx] 请求', { playId, userId });
   return new Promise((resolve, reject) => {
     wx.request({
@@ -93,7 +98,8 @@ function rpcCalcTicketPrice(playId, userId, opts) {
       },
       success(res) {
         if (res.statusCode >= 200 && res.statusCode < 300) {
-          console.log('[supabase][rpc_calc_ticket_price_tx] 成功', { statusCode: res.statusCode, dataType: typeof res.data, isArray: Array.isArray(res.data), first: Array.isArray(res.data) && res.data[0] ? Object.keys(res.data[0]) : (res.data && typeof res.data === 'object' ? Object.keys(res.data) : null) });
+          const first = Array.isArray(res.data) && res.data[0] ? res.data[0] : (res.data && typeof res.data === 'object' && !Array.isArray(res.data) ? res.data : null);
+          console.log('[supabase][rpc_calc_ticket_price_tx] 成功', { statusCode: res.statusCode, raw_first: first, final_price: first && first.final_price, price: first && first.price });
           resolve(res.data);
         } else {
           const msg = res.data?.message || res.data?.error_description || res.data?.error || (typeof res.data === 'string' ? res.data : null) || `HTTP ${res.statusCode}`;

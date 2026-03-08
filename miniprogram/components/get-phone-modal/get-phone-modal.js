@@ -37,6 +37,14 @@ Component({
       this.setData({ agreedToTerms: next });
     },
 
+    onOpenServiceAgreement() {
+      wx.navigateTo({ url: '/pages/agreement-service/agreement-service' });
+    },
+
+    onOpenPrivacyAgreement() {
+      wx.navigateTo({ url: '/pages/agreement-privacy/agreement-privacy' });
+    },
+
     /** 未勾选协议时点击：弹窗提示，同意则勾选并提示再次点击按钮 */
     onAgreementRequired() {
       if (this.data.agreedToTerms) return;

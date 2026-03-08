@@ -31,9 +31,9 @@
           <text wx:if="{{agreedToTerms}}" class="get-phone-checkbox-tick">✓</text>
         </view>
         <text class="get-phone-tip">登录即表示同意</text>
-        <navigator class="get-phone-link" url="/pages/agreement-service/agreement-service" open-type="navigate">《用户服务协议》</navigator>
+        <text class="get-phone-link" bindtap="onOpenServiceAgreement">《用户服务协议》</text>
         <text class="get-phone-tip">和</text>
-        <navigator class="get-phone-link" url="/pages/agreement-privacy/agreement-privacy" open-type="navigate">《隐私政策》</navigator>
+        <text class="get-phone-link" bindtap="onOpenPrivacyAgreement">《隐私政策》</text>
       </view>
 
       <view wx:if="{{showDenyTip}}" class="get-phone-deny-tip">

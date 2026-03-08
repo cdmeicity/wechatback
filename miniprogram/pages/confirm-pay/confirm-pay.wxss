@@ -383,6 +383,13 @@
   border: none;
 }
 
+/* 券支付未选券或未核算完成时置灰 */
+.btn-pay-disabled,
+.btn-pay[disabled] {
+  background: #c0c0c0 !important;
+  color: #fff;
+}
+
 /* 会员卡密码弹窗 */
 .password-modal-mask {
   position: fixed;

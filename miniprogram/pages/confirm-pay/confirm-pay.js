@@ -46,6 +46,7 @@ Page({
     orderData: null,
     cardInfo: null,
     selectedMethod: 'wechat',
+    hasCoupons: false,         // 当前用户是否有券（与卡券管理同源），有券只显示券支付，无券只显示微信支付
     selectedCouponIds: [],     // 当前选中的券 id 列表，用于券支付（可多选）
     availableCoupons: [],
     boundCouponList: [],       // 已绑定的券列表（展示用）
@@ -123,6 +124,21 @@ Page({
     this._loadCoupons();
   },
 
+  /** 无券时弹窗：重要提示 - 有券请先到卡券管理绑定，无券默认微信支付 */
+  _showCouponTipModal() {
+    wx.showModal({
+      title: '重要提示',
+      content: '如果您是我们重要的行业客户，您拥有我们的兑换券，请您先到我的-卡券管理-绑定您的券！如果不绑定，默认是微信支付，绑定券之后才能使用券支付，感谢您的理解和支持！\n热线电话：0314-2207000',
+      cancelText: '我没有券',
+      confirmText: '我去绑券',
+      success: (res) => {
+        if (res.confirm) {
+          wx.navigateTo({ url: '/pages/coupon-list/coupon-list' });
+        }
+      }
+    });
+  },
+
   _getOpenid() {
     const gd = getApp()?.globalData || {};
     return (gd.wxProfile && gd.wxProfile.openid) || (auth.getOpenid && auth.getOpenid()) || '';
@@ -147,8 +163,9 @@ Page({
     const self = this;
     const openid = this._getOpenid();
     const phone = this._getUserPhone();
+    const onlyMemberCard = this.data.onlyMemberCard;
     if (!openid && !phone) {
-      this.setData({ boundCouponList: [], availableCoupons: [] });
+      this._applyCouponListResult([], onlyMemberCard);
       return;
     }
     const promiseProfile = openid ? supabase.getUserProfileByOpenid(openid) : Promise.resolve(null);
@@ -156,13 +173,16 @@ Page({
       .then((profile) => {
         const userId = (profile && profile.user_id) ? String(profile.user_id).trim() : self._getUserId();
         if (!userId && !phone) {
-          self.setData({ boundCouponList: [], availableCoupons: [] });
+          self._applyCouponListResult([], self.data.onlyMemberCard);
           return;
         }
         return supabase.getCouponListForUser(userId, phone);
       })
       .then((rows) => {
-        if (!rows || !Array.isArray(rows)) return;
+        if (!rows || !Array.isArray(rows)) {
+          self._applyCouponListResult([], onlyMemberCard);
+          return;
+        }
         const list = rows.map((row) => ({
           id: row.id,
           couponCode: row.coupon_code || '',
@@ -171,11 +191,26 @@ Page({
           status: row.status || 'available',
           isSelected: false
         }));
-        self.setData({ boundCouponList: list, availableCoupons: list });
+        const onlyMemberCard = self.data.onlyMemberCard;
+        self._applyCouponListResult(list, onlyMemberCard);
       })
       .catch(() => {
-        self.setData({ boundCouponList: [], availableCoupons: [] });
+        self._applyCouponListResult([], self.data.onlyMemberCard);
       });
+  },
+
+  /** 券列表加载完成后：有券只显示券支付且默认选中，无券只显示微信支付且默认选中；无券时弹出重要提示 */
+  _applyCouponListResult(list, onlyMemberCard) {
+    const hasCoupons = list.length > 0;
+    this.setData({
+      boundCouponList: list,
+      availableCoupons: list,
+      hasCoupons
+    });
+    if (!onlyMemberCard) {
+      this.setData({ selectedMethod: hasCoupons ? 'coupon' : 'wechat' });
+      if (!hasCoupons) this._showCouponTipModal();
+    }
   },
 
   onSelectPayment(e) {

@@ -123,6 +123,7 @@ module.exports = {
         app.globalData.supabaseUser = null;
         app.globalData.userinfo = null;
         app.globalData.cardinfo = null;
+        app.globalData.wxProfile = null;
         app.globalData.manualLogout = true;
       }
     } catch (e) {}

@@ -43,6 +43,46 @@
   color: #999;
 }
 
+.login-manual {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 80rpx;
+}
+
+.login-manual-tip {
+  font-size: 30rpx;
+  color: #333;
+  margin-bottom: 32rpx;
+  text-align: center;
+}
+
+.login-manual-item {
+  font-size: 28rpx;
+  color: #666;
+  margin-bottom: 16rpx;
+  align-self: flex-start;
+  margin-left: 32rpx;
+}
+
+.login-btn-start {
+  margin-top: 60rpx;
+  width: 100%;
+  max-width: 400rpx;
+  height: 88rpx;
+  line-height: 88rpx;
+  background: #FE4A49;
+  color: #fff;
+  font-size: 32rpx;
+  font-weight: 600;
+  border-radius: 44rpx;
+  border: none;
+}
+
+.login-btn-start::after {
+  border: none;
+}
+
 .login-btn-primary {
   width: 100%;
   height: 96rpx;

@@ -9,10 +9,17 @@ const LOG = (step, detail) => console.log('[登录页]', step, detail !== undefi
 
 Page({
   data: {
-    loading: true
+    loading: true,
+    needManualLogin: false
   },
 
   onLoad() {
+    const app = getApp();
+    if (app && app.globalData && app.globalData.manualLogout === true) {
+      LOG('已退出登录，需用户主动重新登录');
+      this.setData({ loading: false, needManualLogin: true });
+      return;
+    }
     const token = auth.getAccessToken();
     const storedUser = auth.getUser();
     LOG('onLoad', { hasToken: !!token, hasUser: !!storedUser });
@@ -22,6 +29,13 @@ Page({
       return;
     }
     LOG('无 token，触发静默登录', {});
+    this._doSilentLogin();
+  },
+
+  onStartLogin() {
+    const app = getApp();
+    if (app && app.globalData) app.globalData.manualLogout = false;
+    this.setData({ needManualLogin: false, loading: true });
     this._doSilentLogin();
   },
 

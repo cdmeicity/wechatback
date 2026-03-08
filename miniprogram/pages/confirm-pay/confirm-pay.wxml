@@ -24,7 +24,7 @@
       <text class="section-title">支付方式</text>
       <view class="payment-methods">
         <view
-          wx:if="{{!onlyMemberCard}}"
+          wx:if="{{!onlyMemberCard && !hasCoupons}}"
           class="payment-item {{selectedMethod === 'wechat' ? 'selected' : ''}}"
           data-method="wechat"
           bindtap="onSelectPayment"
@@ -34,7 +34,7 @@
           <view class="radio {{selectedMethod === 'wechat' ? 'checked' : ''}}"></view>
         </view>
         <view
-          wx:if="{{!onlyMemberCard}}"
+          wx:if="{{!onlyMemberCard && hasCoupons}}"
           class="payment-item {{selectedMethod === 'coupon' ? 'selected' : ''}}"
           data-method="coupon"
           bindtap="onSelectPayment"
@@ -59,8 +59,8 @@
       </view>
     </view>
 
-    <!-- 优惠券（仅会员卡模式不显示） -->
-    <view wx:if="{{!onlyMemberCard}}" class="section coupon-section">
+    <!-- 优惠券（有券且非仅会员卡时显示） -->
+    <view wx:if="{{!onlyMemberCard && hasCoupons}}" class="section coupon-section">
       <text class="section-title">优惠券</text>
       <view class="coupon-add-cell" bindtap="onAddCoupon">
         <text class="coupon-add-placeholder">输入券码绑定后可在此使用</text>
@@ -198,6 +198,10 @@
       <text class="total-label">应付金额</text>
       <text class="total-price">¥{{selectedMethod === 'coupon' ? payRemain : grandTotal}}</text>
     </view>
-    <button class="btn-pay" bindtap="onPay">立即支付</button>
+    <button
+      class="btn-pay {{selectedMethod === 'coupon' && (selectedCouponIds.length === 0 || !couponCheckResult || couponCheckResult.balance == null) ? 'btn-pay-disabled' : ''}}"
+      disabled="{{selectedMethod === 'coupon' && (selectedCouponIds.length === 0 || !couponCheckResult || couponCheckResult.balance == null)}}"
+      bindtap="onPay"
+    >立即支付</button>
   </view>
 </view>

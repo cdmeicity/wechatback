@@ -90,8 +90,8 @@ App({
         this.globalData.cardinfo = null;
         LOG('② 不恢复', { phoneLoginDone, hasToken: !!token, hasUser: !!storedUser });
       } else {
-        // 与 public.users 对齐：user_id 来自 users.id，phone 来自 users.phone
-        const userId = storedUser.id ?? null;
+        // 与 public.users 对齐：兼容 id / user_id / userId
+        const userId = storedUser.id ?? storedUser.user_id ?? storedUser.userId ?? null;
         const userPhone = storedUser.phone ?? storedUser.mobile ?? null;
         const userObj = {
           id: userId,

@@ -13,6 +13,30 @@ const qrcode = require('../../utils/qrcode.js');
 const dateHelper = require('../../utils/dateHelper.js');
 const auth = require('../../utils/auth.js');
 
+/** 与 play 页一致：支持逗号分隔的影片编码 */
+function splitMovieCodes(val) {
+  if (val == null || val === '') return [];
+  const s = String(val).trim();
+  if (!s) return [];
+  if (s.includes(',')) return s.split(',').map((c) => c.trim()).filter(Boolean);
+  return [s];
+}
+
+/** movie_list 一行里的 movie_code 与订单 cine_movie_num 必须严格相等（禁止 indexOf 模糊匹配导致串片） */
+function rowMovieCodeMatchesCineNum(rowMovieCode, cineMovieNum) {
+  const target = String(cineMovieNum || '').trim();
+  if (!target) return false;
+  const codes = [];
+  if (Array.isArray(rowMovieCode)) {
+    rowMovieCode.forEach((c) => {
+      splitMovieCodes(c != null ? String(c) : '').forEach((x) => codes.push(x));
+    });
+  } else if (rowMovieCode != null && rowMovieCode !== '') {
+    splitMovieCodes(String(rowMovieCode)).forEach((x) => codes.push(x));
+  }
+  return codes.some((c) => c === target);
+}
+
 function parseSeats(seatList) {
   if (Array.isArray(seatList)) return seatList.map(String);
   if (typeof seatList === 'string') {
@@ -174,15 +198,7 @@ Page({
       for (let i = 0; i < rows.length; i++) {
         const row = rows[i];
         const movieCode = row.movie_code;
-        let match = false;
-        if (Array.isArray(movieCode)) {
-          match = movieCode.some(function (c) {
-            const s = (c != null ? String(c) : '');
-            return s.indexOf(cineMovieNum) !== -1 || cineMovieNum.indexOf(s) !== -1;
-          });
-        } else if (typeof movieCode === 'string') {
-          match = movieCode.indexOf(cineMovieNum) !== -1 || cineMovieNum.indexOf(movieCode) !== -1;
-        }
+        const match = rowMovieCodeMatchesCineNum(movieCode, cineMovieNum);
         if (match) {
           this.setData({
             movieListData: {

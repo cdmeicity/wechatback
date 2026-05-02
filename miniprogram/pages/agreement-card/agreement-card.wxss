@@ -1,0 +1,51 @@
+.agreement-page {
+  min-height: 100vh;
+  background: #fff;
+}
+.agreement-scroll {
+  height: 100vh;
+}
+.agreement-content {
+  padding: 32rpx;
+  padding-bottom: 60rpx;
+}
+.agreement-header {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 32rpx;
+}
+.agreement-title {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 16rpx;
+}
+.agreement-meta {
+  font-size: 26rpx;
+  color: #666;
+  line-height: 1.6;
+  margin-bottom: 8rpx;
+}
+.agreement-h {
+  font-size: 30rpx;
+  font-weight: bold;
+  color: #333;
+  margin-top: 28rpx;
+  margin-bottom: 12rpx;
+  display: block;
+}
+.agreement-p {
+  font-size: 28rpx;
+  color: #555;
+  line-height: 1.75;
+  margin-bottom: 16rpx;
+  display: block;
+}
+.agreement-footer {
+  margin-top: 40rpx;
+  padding-top: 24rpx;
+  border-top: 1rpx solid #eee;
+}
+.agreement-footer .agreement-meta {
+  margin-bottom: 4rpx;
+}

@@ -71,6 +71,26 @@
     <view class="bottom-spacer"></view>
   </scroll-view>
 
+  <!-- 退改签协议：自定义弹窗，正文区域 scroll-y 可下拉阅读（替代 wx.showModal） -->
+  <view wx:if="{{showRefundAgreementModal}}" class="refund-agreement-mask" catchtouchmove="preventTouchMove">
+    <view class="refund-agreement-dialog">
+      <view class="refund-agreement-title">退改签协议</view>
+      <scroll-view
+        scroll-y
+        class="refund-agreement-scroll"
+        show-scrollbar="{{true}}"
+        enhanced="{{true}}"
+        bounces="{{true}}"
+      >
+        <text class="refund-agreement-body" selectable>{{refundAgreementModalBody}}</text>
+      </scroll-view>
+      <view class="refund-agreement-actions">
+        <view class="refund-agreement-btn disagree" bindtap="onRefundAgreementDisagree">不同意</view>
+        <view class="refund-agreement-btn agree" bindtap="onRefundAgreementAgree">同意</view>
+      </view>
+    </view>
+  </view>
+
   <!-- M6.5 会员卡支付密码弹窗 -->
   <view wx:if="{{showMemberCardPasswordModal}}" class="member-card-password-mask" catchtap="onMemberCardPasswordCancel" catchtouchmove="preventTouchMove">
     <view class="member-card-password-box" catchtap="preventTouchMove" catchtouchmove="preventTouchMove">

@@ -142,21 +142,18 @@ Page({
     this.setData({ agreedToTerms: !this.data.agreedToTerms });
   },
 
+  onOpenCardAgreement() {
+    wx.navigateTo({ url: '/pages/agreement-card/agreement-card' });
+  },
+
   onApplyCard() {
     if (!this.data.agreedToTerms) {
-      wx.showToast({ title: '请先同意会员卡办理协议', icon: 'none' });
+      wx.showToast({ title: '请先阅读并同意《会员卡办理及充值协议》', icon: 'none' });
       return;
     }
     const { selectedCard } = this.data;
     if (!selectedCard) return;
-    wx.showModal({
-      title: '会员卡新办及充值协议',
-      content: '请阅读并同意《会员卡新办及充值协议》后再办理。是否同意？',
-      confirmText: '确定',
-      success: (res) => {
-        if (res.confirm) this._showApplyCardForm();
-      }
-    });
+    this._showApplyCardForm();
   },
 
   _showApplyCardForm() {
@@ -487,6 +484,14 @@ Page({
         return;
       }
 
+      // 兜底：确保 user_member_cards 持久化，避免重启后会员卡状态丢失
+      try {
+        await supabase.bindMemberCard(userId, cardinfo);
+        LOG('④.1 user_member_cards 持久化成功');
+      } catch (persistErr) {
+        LOG('④.1 user_member_cards 持久化失败（不影响当前绑定态）', { err: persistErr && persistErr.message });
+      }
+
       LOG('⑤ 绑定成功，更新本地会员价状态 app.globalData.cardinfo');
       app.globalData.cardinfo = cardinfo;
       LOG('⑤ app.cardinfo 已更新', { cardNumber: app.globalData.cardinfo?.cardNumber, cardName: app.globalData.cardinfo?.cardName });
@@ -643,11 +648,15 @@ Page({
     }
     wx.showModal({
       title: '会员卡新办及充值协议',
-      content: '请阅读并同意《会员卡新办及充值协议》后再进行充值。是否同意？',
-      confirmText: '同意',
+      content: '请阅读并同意《会员卡新办及充值协议》后再进行充值。',
+      confirmText: '我已阅读并同意',
+      cancelText: '查看协议',
       success: (res) => {
-        if (!res.confirm) return;
-        this._requestWechatCardPayAndPay(outTradeNo, totalCents, amount, cardInfo);
+        if (res.confirm) {
+          this._requestWechatCardPayAndPay(outTradeNo, totalCents, amount, cardInfo);
+        } else {
+          wx.navigateTo({ url: '/pages/agreement-card/agreement-card' });
+        }
       }
     });
   },
@@ -774,13 +783,28 @@ Page({
       success: async (res) => {
         if (res.confirm) {
           if (userId) {
-            try {
-              await cardApi.cardUnbind({ user_id: userId, cid: cid || undefined });
-            } catch (e) {
-              console.warn('[card-manage] 后端 card_unbind 失败', e);
+            const tasks = [];
+            // 解绑入口1：业务后端
+            tasks.push(
+              cardApi.cardUnbind({ user_id: userId, cid: cid || undefined }).catch((e) => {
+                console.warn('[card-manage] 后端 card_unbind 失败', e);
+              })
+            );
+            // 解绑入口2：本地 Supabase user_member_cards（防止会话恢复把卡又拉回来）
+            tasks.push(
+              supabase.unbindMemberCard(userId).catch((e) => {
+                console.warn('[card-manage] supabase.unbindMemberCard 失败', e);
+              })
+            );
+            await Promise.all(tasks);
+          }
+          if (app?.globalData) {
+            app.globalData.cardinfo = null;
+            // 清理可能缓存的订单卡号，避免后续流程误判为会员卡单
+            if (app.globalData.playOrder) {
+              app.globalData.playOrder = Object.assign({}, app.globalData.playOrder, { card_number: null });
             }
           }
-          if (app?.globalData) app.globalData.cardinfo = null;
           this.setData({ cardInfo: null, hasBoundCard: false });
           wx.showToast({ title: '解绑成功', icon: 'success' });
         }

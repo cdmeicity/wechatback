@@ -207,13 +207,20 @@ Page({
     const movie = this.data.movie;
     if (!movie) return;
     const movies = app.globalData.hotMovies || [];
-    const current = movies.find((m) => (m.id === movie.id || m.movie_code === movie.movie_code || m.movieCode === movie.movieCode));
-    const movieList = current ? movies : [movie].concat(movies);
+    const current = movies.find((m) => (
+      String(m.id) === String(movie.id) ||
+      String(m.movie_code || m.movieCode || '') === String(movie.movie_code || movie.movieCode || '')
+    ));
+    // 当前片置顶：避免 play 页用 movies[0] 兜底时落到「热映排序第一部」而非用户点的片
+    const movieList = current
+      ? [current].concat(movies.filter((m) => String(m.id) !== String(current.id)))
+      : [movie].concat(movies);
     const movieCode = movie.movie_code || movie.movieCode || null;
     app.globalData.playParams = {
       cinema,
       movies: movieList,
-      initialMovieCode: movieCode
+      initialMovieCode: movieCode,
+      initialMovieId: movie.id != null ? movie.id : null
     };
     wx.navigateTo({ url: '/pages/play/play' });
   }

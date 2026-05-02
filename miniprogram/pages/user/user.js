@@ -1,5 +1,6 @@
 const auth = require('../../utils/auth.js');
 const cardApi = require('../../utils/cardApi.js');
+const supabase = require('../../utils/supabase.js');
 
 Page({
   data: {
@@ -76,6 +77,30 @@ Page({
       cardInfo,
       isLoggedIn: u != null
     });
+
+    // 兜底：内存里无卡但用户已登录时，主动从 user_member_cards 恢复一次
+    if (u && !cardinfo) {
+      this._tryRestoreCardInfo(u);
+    }
+  },
+
+  async _tryRestoreCardInfo(user) {
+    const app = getApp();
+    const gd = app?.globalData || {};
+    if (gd.cardinfo) return;
+    const userId = user?.id || user?.user_id || user?.userId;
+    if (!userId) return;
+    try {
+      const cardinfo = await supabase.getUserMemberCard(userId);
+      if (!cardinfo || !cardinfo.cardNumber) return;
+      gd.cardinfo = cardinfo;
+      this.setData({
+        cardInfo: {
+          ...cardinfo,
+          cardStatusDisplay: cardApi.getCardStatusText(cardinfo.cardStatus)
+        }
+      });
+    } catch (e) {}
   },
 
   _setNavActive(key) {

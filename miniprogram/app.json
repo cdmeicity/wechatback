@@ -24,6 +24,8 @@
     "pages/feedback-detail/feedback-detail",
     "pages/agreement-service/agreement-service",
     "pages/agreement-privacy/agreement-privacy",
+    "pages/agreement-card/agreement-card",
+    "pages/agreement-refund-change/agreement-refund-change",
     "pages/coupon-list/coupon-list",
     "pages/coupon-bind/coupon-bind"
   ],

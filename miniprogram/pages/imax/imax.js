@@ -489,7 +489,8 @@ Page({
         cinema_name: (cinema?.name || cinema?.cinema_name || '').toString(),
         cinema_num: cinemaNum.toString(),
         play_id: String(playId),
-        movie_name: (selectedShowtime.movieName || selectedMovie?.name || '').toString(),
+        // 与 play 一致：优先当前选中影片名，避免排期行 movie_name 与编码不一致
+        movie_name: (selectedMovie?.name || selectedShowtime.movieName || '').toString(),
         movie_img_url: (selectedMovie?.logo || selectedMovie?.movie_img_url || '').toString(),
         hall_name: (selectedShowtime.hallName || '').toString(),
         phone: phone || '',

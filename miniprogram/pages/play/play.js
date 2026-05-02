@@ -62,19 +62,38 @@ Page({
     const u = app.globalData.supabaseUser;
     const hasUser = !!(u && (u.id ?? u.userId ?? u.user_id));
     const initialMovieCode = params.initialMovieCode || null;
+    /** 详情页传入，优先按 id 选中影片（避免 id 类型不一致、编码与排期字段不一致导致错片） */
+    const initialMovieId = params.initialMovieId != null && params.initialMovieId !== ''
+      ? params.initialMovieId
+      : null;
     const hallId = params.hallId || null;
 
     let selectedMovie = movies[0] || null;
     let selectedMovieIndex = 0;
-    if (initialMovieCode && movies.length > 0) {
-      const idx = movies.findIndex((m) => (m.movie_code || m.movieCode || '') === initialMovieCode);
+    if (movies.length > 0) {
+      let idx = -1;
+      if (initialMovieId != null) {
+        idx = movies.findIndex((m) => String(m.id) === String(initialMovieId));
+      }
+      if (idx < 0 && initialMovieCode) {
+        const initialCodes = this._parseMovieCodes(initialMovieCode);
+        idx = movies.findIndex((m) => {
+          const codes = this._codesFromMovieRow(m);
+          return initialCodes.some((ic) =>
+            codes.some((c) => String(c).trim() === String(ic).trim())
+          );
+        });
+      }
       if (idx >= 0) {
         selectedMovie = movies[idx];
         selectedMovieIndex = idx;
       }
     }
 
-    const selectmoviecode = this._parseMovieCodes(selectedMovie?.movie_code || selectedMovie?.movieCode || initialMovieCode);
+    let selectmoviecode = this._codesFromMovieRow(selectedMovie);
+    if (selectmoviecode.length === 0) {
+      selectmoviecode = this._parseMovieCodes(initialMovieCode);
+    }
     const movieScrollLeft = this._calcMovieScrollLeft(selectedMovieIndex);
 
     this.setData({
@@ -113,6 +132,32 @@ Page({
     return [s];
   },
 
+  /** 热映/详情行上可能出现的多部编码字段，合并去重后与排期 cine_movie_num 比对 */
+  _codesFromMovieRow(m) {
+    if (!m) return [];
+    const parts = [
+      m.movie_code,
+      m.movieCode,
+      m.cine_movie_num,
+      m.cineMovieNum,
+      m.movie_num,
+      m.movieNum
+    ];
+    const seen = new Set();
+    const out = [];
+    for (let i = 0; i < parts.length; i++) {
+      const parsed = this._parseMovieCodes(parts[i]);
+      for (let j = 0; j < parsed.length; j++) {
+        const k = String(parsed[j]).trim();
+        if (k && !seen.has(k)) {
+          seen.add(k);
+          out.push(k);
+        }
+      }
+    }
+    return out;
+  },
+
   onBack() {
     wx.navigateBack();
   },
@@ -146,12 +191,19 @@ Page({
     const idx = parseInt(e.currentTarget.dataset.index, 10);
     const movie = this.data.movies[idx];
     if (!movie) return;
-    const selectmoviecode = this._parseMovieCodes(movie.movie_code || movie.movieCode);
+    let selectmoviecode = this._codesFromMovieRow(movie);
+    if (selectmoviecode.length === 0) {
+      selectmoviecode = this._parseMovieCodes(movie.movie_code || movie.movieCode);
+    }
     const scrollLeft = this._calcMovieScrollLeft(idx);
     this.setData({
       selectedMovie: movie,
       selectedMovieIndex: idx,
       selectmoviecode,
+      // 切片后重置日期，避免沿用上一部影片日期导致空场或错场
+      selectdata: '',
+      selectedDateIndex: 0,
+      dateList: [],
       selectedShowtime: null,
       movieScrollLeft: scrollLeft
     });
@@ -180,8 +232,11 @@ Page({
   async _loadShowtimes() {
     const LOG = (msg, data) => console.log('[play][排期列表]', msg, data !== undefined ? data : '');
     const { cinema, selectmoviecode, selectdata, hallId } = this.data;
+    const requestId = (this._showtimeRequestSeq || 0) + 1;
+    this._showtimeRequestSeq = requestId;
+    const selectedCodesSnapshot = (selectmoviecode || []).map((c) => String(c).trim()).join(',');
     const cinemaId = cinema?.cinemaid || cinema?.cinemaNumber || cinema?.id;
-    LOG('_loadShowtimes 开始', { cinemaId, hallId, selectmoviecode, selectdata });
+    LOG('_loadShowtimes 开始', { requestId, cinemaId, hallId, selectmoviecode, selectdata });
     if (!cinemaId) {
       LOG('无 cinemaId，清空场次');
       this.setData({ showtimes: [], dateList: [], loadingShowtimes: false });
@@ -202,6 +257,10 @@ Page({
       });
       const arr = Array.isArray(raw) ? raw : [];
       LOG('getCinemaPlay 返回', { count: arr.length, samplePlayId: arr[0] ? (arr[0].play_id || arr[0].cine_play_id) : null });
+      if (requestId !== this._showtimeRequestSeq) {
+        LOG('忽略过期排期响应', { requestId, latest: this._showtimeRequestSeq });
+        return;
+      }
       const now = new Date();
       const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
@@ -209,7 +268,8 @@ Page({
         const cineNum = (row.cine_movie_num || row.cineMovieNum || '').toString().trim();
         const movieMatch = selectmoviecode.some((code) => {
           const c = String(code).trim();
-          return c === cineNum || c.includes(cineNum) || cineNum.includes(c);
+          // 必须严格相等，避免 123 / 1234 这类包含关系导致串片
+          return c === cineNum;
         });
         if (!movieMatch) return false;
         const startTime = parseStartTime(row.start_time || row.startTime);
@@ -296,7 +356,7 @@ Page({
         if (key) showtimesRaw[key] = row;
       });
 
-      LOG('排期列表渲染完成', { showtimesCount: showtimes.length, dateListCount: dateList.length, 说明: '未调用算价RPC，价格来自 display_price' });
+      LOG('排期列表渲染完成', { requestId, showtimesCount: showtimes.length, dateListCount: dateList.length, selectedCodesSnapshot, 说明: '未调用算价RPC，价格来自 display_price' });
       this.setData({
         dateList,
         selectdata: newSelectdata,
@@ -307,6 +367,7 @@ Page({
       });
     } catch (e) {
       LOG('_loadShowtimes 异常', { err: e && e.message });
+      if (requestId !== this._showtimeRequestSeq) return;
       this.setData({ showtimes: [], dateList: [], loadingShowtimes: false });
       wx.showToast({ title: '加载场次失败', icon: 'none' });
     }
@@ -436,7 +497,8 @@ Page({
         cinema_name: (cinema?.name || cinema?.cinema_name || '').toString(),
         cinema_num: cinemaNum.toString(),
         play_id: String(playId),
-        movie_name: (selectedShowtime.movieName || selectedMovie?.name || '').toString(),
+        // 下单时优先使用当前选中影片名，避免排期行 movie_name 异常导致串片标题
+        movie_name: (selectedMovie?.name || selectedShowtime.movieName || '').toString(),
         movie_img_url: (selectedMovie?.logo || selectedMovie?.movie_img_url || '').toString(),
         hall_name: (selectedShowtime.hallName || '').toString(),
         phone: phone || '',

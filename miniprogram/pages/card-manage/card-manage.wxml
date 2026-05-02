@@ -72,12 +72,12 @@
         </view>
       </view>
       <view wx:if="{{selectedCard}}" class="apply-section">
-        <view class="agree-row" bindtap="onAgreeChange">
-          <view class="agree-checkbox {{agreedToTerms ? 'checked' : ''}}">
+        <view class="agree-row">
+          <view class="agree-checkbox {{agreedToTerms ? 'checked' : ''}}" bindtap="onAgreeChange">
             <text wx:if="{{agreedToTerms}}">✓</text>
           </view>
           <text class="agree-text">我已阅读并同意</text>
-          <text class="agree-link">《会员卡办理及充值协议》</text>
+          <text class="agree-link" bindtap="onOpenCardAgreement">《会员卡办理及充值协议》</text>
         </view>
         <view
           class="apply-btn {{!agreedToTerms ? 'disabled' : ''}}"

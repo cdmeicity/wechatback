@@ -313,6 +313,91 @@
   color: var(--text-placeholder);
 }
 
+/* 退改签协议自定义弹窗（内嵌纵向滚动） */
+.refund-agreement-mask {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 950;
+  padding: 48rpx;
+  box-sizing: border-box;
+}
+
+.refund-agreement-dialog {
+  width: 100%;
+  max-width: 620rpx;
+  max-height: 78vh;
+  background: #fff;
+  border-radius: 16rpx;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8rpx 40rpx rgba(0, 0, 0, 0.12);
+}
+
+.refund-agreement-title {
+  flex-shrink: 0;
+  padding: 32rpx 32rpx 16rpx;
+  font-size: 34rpx;
+  font-weight: 600;
+  color: #333;
+  text-align: center;
+}
+
+.refund-agreement-scroll {
+  flex: 1;
+  min-height: 320rpx;
+  height: 460rpx;
+  max-height: 52vh;
+  width: 100%;
+  box-sizing: border-box;
+  border-top: 1rpx solid #eee;
+  border-bottom: 1rpx solid #eee;
+}
+
+.refund-agreement-body {
+  display: block;
+  padding: 24rpx 32rpx 32rpx;
+  font-size: 28rpx;
+  line-height: 1.65;
+  color: #444;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.refund-agreement-actions {
+  flex-shrink: 0;
+  display: flex;
+  border-top: 1rpx solid #eee;
+}
+
+.refund-agreement-btn {
+  flex: 1;
+  height: 96rpx;
+  line-height: 96rpx;
+  text-align: center;
+  font-size: 32rpx;
+  font-weight: 500;
+}
+
+.refund-agreement-btn.disagree {
+  color: #666;
+  background: #f7f7f7;
+  border-right: 1rpx solid #eee;
+}
+
+.refund-agreement-btn.agree {
+  color: #576b95;
+  font-weight: 600;
+  background: #fff;
+}
+
 /* M6.5 会员卡支付密码弹窗 */
 .member-card-password-mask {
   position: fixed;

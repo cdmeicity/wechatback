@@ -12,8 +12,14 @@ const md5 = require('../../utils/md5.js');
 const dateHelper = require('../../utils/dateHelper.js');
 
 const MAX_SEATS = 5; // 单笔订单最多选座数
-/** 退改签协议文案（确认选座后、跳转支付前必显） */
+/** 退改签协议摘要（与自定义弹窗首段一致，供逻辑/日志引用） */
 const REFUND_CHANGE_AGREEMENT = '购票后如需退票、改签，请按影院及平台公示的退改签规则办理，具体以实际规则为准。是否同意并继续？';
+/** 自定义弹窗内可滚动全文（避免原生 showModal 正文不可滚动、过长易 fail） */
+const REFUND_AGREEMENT_MODAL_BODY =
+  REFUND_CHANGE_AGREEMENT +
+  '\n\n一、总则\n您通过本小程序购票，即视为已阅读并理解退改签相关说明。\n\n' +
+  '二、线上退改签\n小程序购票后不支持线上退票；暂不支持线上改签。改签请在影片开场前携带取票凭证到影院门店办理，具体以门店规定为准。\n\n' +
+  '三、其他\n场次取消、影片变更等特殊情况，以影院及平台公示为准。完整协议可在「查看协议」相关入口阅读。';
 const N7_POLL_INTERVAL_MS = 2000;
 const N7_TIMEOUT_MS = 60000;
 const M65_POLL_INTERVAL_MS = 1500;  // 会员卡支付后轮询 pay_status 间隔
@@ -47,7 +53,10 @@ Page({
     processingTicketOutTradeNo: '',
     showMemberCardPasswordModal: false,
     _memberCardPayCtx: null,
-    _memberCardPasswordInput: ''
+    _memberCardPasswordInput: '',
+    /** 退改签自定义弹窗（内含 scroll-view，替代 wx.showModal） */
+    showRefundAgreementModal: false,
+    refundAgreementModalBody: ''
   },
 
   async onLoad(options) {
@@ -119,6 +128,36 @@ Page({
 
   onNavBack() {
     wx.navigateBack();
+  },
+
+  /**
+   * 退改签协议：自定义弹窗（正文可滚动），逻辑与原先 wx.showModal 一致
+   * @param {{ onConfirm?: function, onCancel?: function }} opts
+   */
+  _showRefundAgreementModal(opts) {
+    const o = opts || {};
+    this._refundAgreementOnConfirm = typeof o.onConfirm === 'function' ? o.onConfirm : null;
+    this._refundAgreementOnCancel = typeof o.onCancel === 'function' ? o.onCancel : null;
+    this.setData({
+      showRefundAgreementModal: true,
+      refundAgreementModalBody: REFUND_AGREEMENT_MODAL_BODY
+    });
+  },
+
+  onRefundAgreementAgree() {
+    this.setData({ showRefundAgreementModal: false, refundAgreementModalBody: '' });
+    const fn = this._refundAgreementOnConfirm;
+    this._refundAgreementOnConfirm = null;
+    this._refundAgreementOnCancel = null;
+    if (fn) fn();
+  },
+
+  onRefundAgreementDisagree() {
+    this.setData({ showRefundAgreementModal: false, refundAgreementModalBody: '' });
+    const fn = this._refundAgreementOnCancel;
+    this._refundAgreementOnConfirm = null;
+    this._refundAgreementOnCancel = null;
+    if (fn) fn();
   },
 
   /** 调试：仅日志，不弹窗 */
@@ -200,14 +239,8 @@ Page({
         await this._node('M6.4', '会员锁座成功，弹退改签协议后跳转 confirm-pay');
         const updatedOrder = Object.assign({}, orderData, { lock_flag: lockFlag });
         if (app && app.globalData) app.globalData.playOrder = updatedOrder;
-        wx.showModal({
-          title: '退改签协议',
-          content: REFUND_CHANGE_AGREEMENT,
-          confirmText: '同意',
-          cancelText: '不同意',
-          success: (res) => {
-            if (res.confirm) wx.navigateTo({ url: '/pages/confirm-pay/confirm-pay?onlyMemberCard=1' });
-          }
+        this._showRefundAgreementModal({
+          onConfirm: () => wx.navigateTo({ url: '/pages/confirm-pay/confirm-pay?onlyMemberCard=1' })
         });
       } else {
         const errMsg = (res && (res.message || res.msg)) || '未知错误';
@@ -676,19 +709,13 @@ Page({
             outTradeNo: memberOutTradeNo,
             partnerBuyTicketId
           };
-          wx.showModal({
-            title: '退改签协议',
-            content: REFUND_CHANGE_AGREEMENT,
-            confirmText: '同意',
-            cancelText: '不同意',
-            success: (res) => {
-              if (res.confirm) {
-                this.setData({
-                  showMemberCardPasswordModal: true,
-                  _memberCardPasswordInput: '',
-                  _memberCardPayCtx: memberPayCtx
-                });
-              }
+          this._showRefundAgreementModal({
+            onConfirm: () => {
+              this.setData({
+                showMemberCardPasswordModal: true,
+                _memberCardPasswordInput: '',
+                _memberCardPayCtx: memberPayCtx
+              });
             }
           });
         }
@@ -788,14 +815,8 @@ Page({
               await this._node('NL3', '订单 lock_flag、out_trade_no 已更新，弹退改签协议后跳转 confirm-pay', { orderId, lockFlag, out_trade_no: nonMemberGtOutTradeNo });
               const updatedOrder = Object.assign({}, orderData, patchData, { lock_flag: lockFlag, out_trade_no: nonMemberGtOutTradeNo });
               if (app && app.globalData) app.globalData.playOrder = updatedOrder;
-              wx.showModal({
-                title: '退改签协议',
-                content: REFUND_CHANGE_AGREEMENT,
-                confirmText: '同意',
-                cancelText: '不同意',
-                success: (res) => {
-                  if (res.confirm) wx.navigateTo({ url: '/pages/confirm-pay/confirm-pay' });
-                }
+              this._showRefundAgreementModal({
+                onConfirm: () => wx.navigateTo({ url: '/pages/confirm-pay/confirm-pay' })
               });
             } else {
               const n6Msg = (res && (res.message || res.msg)) || '锁座失败';
@@ -823,14 +844,8 @@ Page({
           await this._node('N7', '非会员小于等于第三方停售，弹退改签后直接调起微信支付', { out_trade_no: nonMemberLtOutTradeNo });
           const totalInCents = Math.round(total * 100);
           const description = '电影票订单：' + (this.data.movieName || '电影');
-          wx.showModal({
-            title: '退改签协议',
-            content: REFUND_CHANGE_AGREEMENT,
-            confirmText: '同意',
-            cancelText: '不同意',
-            success: (res) => {
-              if (res.confirm) this._processWeChatPaymentForNonMember(nonMemberLtOutTradeNo, totalInCents, description, updatedOrderN7);
-            }
+          this._showRefundAgreementModal({
+            onConfirm: () => this._processWeChatPaymentForNonMember(nonMemberLtOutTradeNo, totalInCents, description, updatedOrderN7)
           });
         }
       }
